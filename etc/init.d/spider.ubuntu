@@ -36,8 +36,8 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Orion-LD Context Broker"
-NAME=orionld
+DESC="Spider NGSI-LD Context Broker"
+NAME=spider
 DAEMON=/usr/bin/$NAME
 SCRIPTNAME=/etc/init.d/$NAME
 
