@@ -32,17 +32,15 @@ extern "C"
 }
 
 #include "logMsg/logMsg.h"                                    // LM_*
-#include "logMsg/traceLevels.h"                               // Lmt*
 
 #include "common/defaultValues.h"
 #include "common/string.h"                                    // toString
-#include "rest/uriParamNames.h"                               // URI_PARAM_PAGINATION_OFFSET, URI_PARAM_PAGINATION_LIMIT
 
 #include "orionld/common/orionldState.h"                      // orionldState
 #include "orionld/common/orionldError.h"                      // orionldError
 #include "orionld/types/OrionldHeader.h"                      // orionldHeaderAdd
 #include "orionld/mongoBackend/mongoLdRegistrationsGet.h"     // mongoLdRegistrationsGet
-#include "orionld/kjTree/kjTreeFromRegistration.h"            // kjTreeFromRegistration
+#include "orionld/legacyDriver/kjTreeFromRegistration.h"      // kjTreeFromRegistration
 #include "orionld/legacyDriver/legacyGetRegistrations.h"      // Own Interface
 
 
@@ -92,7 +90,7 @@ bool legacyGetRegistrations(void)
     kjChildAdd(orionldState.responseTree, registrationNodeP);
   }
 
-  orionldState.httpStatusCode = SccOk;
+  orionldState.httpStatusCode = 200;
 
   return true;
 }

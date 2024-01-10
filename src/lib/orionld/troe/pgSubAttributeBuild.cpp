@@ -29,8 +29,8 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                     // LM_*
 
+#include "orionld/types/PgAppendBuffer.h"                      // PgAppendBuffer
 #include "orionld/common/uuidGenerate.h"                       // uuidGenerate
-#include "orionld/troe/PgAppendBuffer.h"                       // PgAppendBuffer
 #include "orionld/troe/pgObservedAtExtract.h"                  // pgObservedAtExtract
 #include "orionld/troe/pgSubAttributeAppend.h"                 // pgSubAttributeAppend
 #include "orionld/troe/pgSubAttributeBuild.h"                  // Own interface
@@ -60,7 +60,7 @@ bool pgSubAttributeBuild
   if (subAttributeNodeP->type != KjObject)
     return true;
 
-  uuidGenerate(instanceId, sizeof(instanceId), true);
+  uuidGenerate(instanceId, sizeof(instanceId), "urn:ngsi-ld:attribute:instance:");
 
   // Extract sub-attribute info
   for (KjNode* nodeP = subAttributeNodeP->value.firstChildP; nodeP != NULL; nodeP = nodeP->next)

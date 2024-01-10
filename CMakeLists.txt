@@ -185,12 +185,15 @@ endif (${CMAKE_BUILD_TYPE} STREQUAL DEBUG)
 SET (ORION_LIBS
     common
     rest          # verbName(Verb) from setExtendedHttpInfo@MongoCommonSubscription.cpp.o; jsonRequestTreat from payloadParse@RestService.cpp.o
-    orionld_rest
+    orionld_mhd
+    orionld_service
     orionld_serviceRoutines
-    orionld_forwarding
+    orionld_distOp
+    orionld_regMatch
     orionld_troe
     orionld_kjTree
     orionld_mqtt
+    orionld_http
     orionld_context
     orionld_common
     orionld_context
@@ -229,13 +232,13 @@ SET (ORION_LIBS
     orionld_payloadCheck
     orionld_kjTree       # mongoBackend uses kjSort, that is temporarily in kjTree - to be moved to kjson
     orionld_payloadCheck
-    orionld_forwarding
     orionld_mqtt
     orionld_q
     orionld_mongoc       # subCache needs mongoc
     orionld_dbModel
     orionld_apiModel
     orionld_common
+    orionld_entityMaps
     orionld_types
     parse
     apiTypesV2
@@ -370,12 +373,15 @@ if (error EQUAL 0)
   ADD_SUBDIRECTORY(src/lib/jsonParseV2)
   ADD_SUBDIRECTORY(src/lib/rest)
   ADD_SUBDIRECTORY(src/lib/orionld/mhd)
+  ADD_SUBDIRECTORY(src/lib/orionld/entityMaps)
   ADD_SUBDIRECTORY(src/lib/orionld/pernot)
   ADD_SUBDIRECTORY(src/lib/orionld/socketService)
   ADD_SUBDIRECTORY(src/lib/orionld/notifications)
-  ADD_SUBDIRECTORY(src/lib/orionld/forwarding)
+  ADD_SUBDIRECTORY(src/lib/orionld/regMatch)
+  ADD_SUBDIRECTORY(src/lib/orionld/distOp)
   ADD_SUBDIRECTORY(src/lib/orionld/q)
-  ADD_SUBDIRECTORY(src/lib/orionld/rest)
+  ADD_SUBDIRECTORY(src/lib/orionld/mhd)
+  ADD_SUBDIRECTORY(src/lib/orionld/service)
   ADD_SUBDIRECTORY(src/lib/orionld/serviceRoutines)
   ADD_SUBDIRECTORY(src/lib/orionld/troe)
   ADD_SUBDIRECTORY(src/lib/orionld/common)
@@ -392,6 +398,7 @@ if (error EQUAL 0)
   ADD_SUBDIRECTORY(src/lib/orionld/mongoc)
   ADD_SUBDIRECTORY(src/lib/orionld/payloadCheck)
   ADD_SUBDIRECTORY(src/lib/orionld/mqtt)
+  ADD_SUBDIRECTORY(src/lib/orionld/http)
   ADD_SUBDIRECTORY(src/lib/orionld/prometheus)
   ADD_SUBDIRECTORY(src/lib/orionld/legacyDriver)
   ADD_SUBDIRECTORY(src/lib/mongoBackend)

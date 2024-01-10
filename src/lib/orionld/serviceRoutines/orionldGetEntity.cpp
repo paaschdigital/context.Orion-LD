@@ -1,4 +1,3 @@
-
 /*
 *
 * Copyright 2022 FIWARE Foundation e.V.
@@ -35,6 +34,7 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
+#include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/tenantList.h"                           // tenant0
@@ -49,14 +49,14 @@ extern "C"
 #include "orionld/apiModel/ntonEntity.h"                         // ntonEntity
 #include "orionld/apiModel/ntosEntity.h"                         // ntosEntity
 #include "orionld/apiModel/ntocEntity.h"                         // ntocEntity
-#include "orionld/forwarding/DistOp.h"                           // DistOp
-#include "orionld/forwarding/regMatchForEntityGet.h"             // regMatchForEntityGet
-#include "orionld/forwarding/distOpListsMerge.h"                 // distOpListsMerge
-#include "orionld/forwarding/distOpSend.h"                       // distOpSend
-#include "orionld/forwarding/distOpLookupByCurlHandle.h"         // distOpLookupByCurlHandle
-#include "orionld/forwarding/distOpEntityMerge.h"                // distOpEntityMerge
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
-#include "orionld/forwarding/xForwardedForCompose.h"             // xForwardedForCompose
+#include "orionld/regMatch/regMatchForEntityGet.h"               // regMatchForEntityGet
+#include "orionld/distOp/distOpListsMerge.h"                     // distOpListsMerge
+#include "orionld/distOp/distOpSend.h"                           // distOpSend
+#include "orionld/distOp/distOpLookupByCurlHandle.h"             // distOpLookupByCurlHandle
+#include "orionld/distOp/distOpEntityMerge.h"                    // distOpEntityMerge
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
+#include "orionld/distOp/xForwardedForCompose.h"                 // xForwardedForCompose
+#include "orionld/distOp/viaCompose.h"                           // viaCompose
 #include "orionld/serviceRoutines/orionldGetEntity.h"            // Own interface
 
 
@@ -184,13 +184,15 @@ bool orionldGetEntity(void)
     {
       // Now that we've found all matching registrations we can add ourselves to the X-forwarded-For header
       char* xff = xForwardedForCompose(orionldState.in.xForwardedFor, localIpAndPort);
+      char* via = viaCompose(orionldState.in.via, brokerId);
 
       for (DistOp* distOpP = distOpList; distOpP != NULL; distOpP = distOpP->next)
       {
         // Send the forwarded request and await all responses
         if (distOpP->regP != NULL)
         {
-          if (distOpSend(distOpP, dateHeader, xff) == 0)
+          LM_T(LmtDistOpAttributes, ("distOp::attrsParam: '%s'", distOpP->attrsParam));
+          if (distOpSend(distOpP, dateHeader, xff, via, false, NULL) == 0)
           {
             ++forwards;
             distOpP->error = false;
@@ -351,7 +353,7 @@ bool orionldGetEntity(void)
   {
     // Transform the apiEntityP according to in case orionldState.out.format, lang, and sysAttrs
 
-    if      (orionldState.out.format == RF_KEYVALUES)  ntosEntity(apiEntityP, lang);
+    if      (orionldState.out.format == RF_SIMPLIFIED) ntosEntity(apiEntityP, lang);
     else if (orionldState.out.format == RF_CONCISE)    ntocEntity(apiEntityP, lang, sysAttrs);
     else                                               ntonEntity(apiEntityP, lang, sysAttrs);
   }
@@ -359,7 +361,7 @@ bool orionldGetEntity(void)
   if ((apiEntityP != NULL) && (sysAttrs == false))
     kjSysAttrsRemove(apiEntityP, 2);
 
-  if (orionldState.out.contentType == GEOJSON)
+  if (orionldState.out.contentType == MT_GEOJSON)
   {
     apiEntityP = kjGeojsonEntityTransform(apiEntityP,
                                           orionldState.geoPropertyNode,

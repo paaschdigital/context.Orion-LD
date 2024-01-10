@@ -27,6 +27,7 @@
 extern "C"
 {
 #include "kalloc/kaBufferInit.h"                            // kaBufferInit
+#include "kalloc/kaBufferReset.h"                           // kaBufferReset
 #include "kjson/kjBufferCreate.h"                           // kjBufferCreate
 #include "kjson/KjNode.h"                                   // KjNode
 #include "kjson/kjBuilder.h"                                // kjArray, ...
@@ -34,12 +35,12 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                  // LM_x
 
-#include "common/RenderFormat.h"                            // RenderFormat
+#include "orionld/types/OrionldRenderFormat.h"              // OrionldRenderFormat
+#include "orionld/types/PernotSubscription.h"               // PernotSubscription
 #include "orionld/common/orionldState.h"                    // orionldState, pernotSubCache
 #include "orionld/types/OrionldGeoInfo.h"                   // OrionldGeoInfo
 #include "orionld/mongoc/mongocEntitiesQuery2.h"            // mongocEntitiesQuery2
 #include "orionld/dbModel/dbModelToApiEntity.h"             // dbModelToApiEntity2
-#include "orionld/pernot/PernotSubscription.h"              // PernotSubscription
 #include "orionld/pernot/pernotSend.h"                      // pernotSend
 #include "orionld/pernot/pernotTreat.h"                     // Own interface
 
@@ -49,7 +50,7 @@ extern "C"
 //
 // dbModelToApiEntities - FIXME: Move to orionld/dbModel
 //
-KjNode* dbModelToApiEntities(KjNode* dbEntityArray, bool sysAttrs, RenderFormat renderFormat, char* lang)
+KjNode* dbModelToApiEntities(KjNode* dbEntityArray, bool sysAttrs, OrionldRenderFormat renderFormat, char* lang)
 {
   KjNode* apiEntityArray = kjArray(orionldState.kjsonP, NULL);
 
@@ -123,13 +124,7 @@ static void* pernotTreat(void* vP)
   orionldState.uriParams.count  = true;   // Need the count to be able to paginate
   orionldState.tenantP          = subP->tenantP;
 
-  kjTreeLog(subP->eSelector,     "eSelector",     LmtPernotQuery);
-  kjTreeLog(subP->attrsSelector, "attrsSelector", LmtPernotQuery);
-  LM_T(LmtPernotQuery, ("qSelector at %p", subP->qSelector));
-
   dbEntityArray = mongocEntitiesQuery2(subP->eSelector, subP->attrsSelector, subP->qSelector, NULL, subP->lang, &count);
-
-  LM_T(LmtPernot, ("mongocEntitiesQuery2 gave a count of %d", count));
 
   if ((dbEntityArray == NULL) || (count == 0))
   {
@@ -193,7 +188,9 @@ static void* pernotTreat(void* vP)
 
 done:
   subP->notificationAttempts += 1;  // timesSent
+  kaBufferReset(&orionldState.kalloc, true);
   pthread_exit(0);
+
   return NULL;
 }
 

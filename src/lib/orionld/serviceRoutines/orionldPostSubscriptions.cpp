@@ -34,27 +34,27 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                     // LM_*
 
-#include "rest/httpHeaderAdd.h"                                // httpHeaderLocationAdd
 #include "cache/subCache.h"                                    // subCacheItemLookup, CachedSubscription
 
+#include "orionld/types/QNode.h"                               // QNode
+#include "orionld/types/PernotSubscription.h"                  // PernotSubscription
+#include "orionld/types/PernotSubCache.h"                      // PernotSubCache
 #include "orionld/common/orionldState.h"                       // orionldState, coreContextUrl
 #include "orionld/common/orionldError.h"                       // orionldError
 #include "orionld/common/uuidGenerate.h"                       // uuidGenerate
 #include "orionld/common/subCacheApiSubscriptionInsert.h"      // subCacheApiSubscriptionInsert
+#include "orionld/http/httpHeaderLocationAdd.h"                // httpHeaderLocationAdd
 #include "orionld/legacyDriver/legacyPostSubscriptions.h"      // legacyPostSubscriptions
 #include "orionld/kjTree/kjChildPrepend.h"                     // kjChildPrepend
 #include "orionld/dbModel/dbModelFromApiSubscription.h"        // dbModelFromApiSubscription
 #include "orionld/mongoc/mongocSubscriptionExists.h"           // mongocSubscriptionExists
 #include "orionld/mongoc/mongocSubscriptionInsert.h"           // mongocSubscriptionInsert
-#include "orionld/pernot/PernotSubscription.h"                 // PernotSubscription
-#include "orionld/pernot/PernotSubCache.h"                     // PernotSubCache
 #include "orionld/pernot/pernotSubCacheAdd.h"                  // pernotSubCacheAdd
-#include "orionld/pernot/pernotSubCacheRemove.h"               // pernotSubCacheRemove
+#include "orionld/pernot/pernotItemRelease.h"                  // pernotItemRelease
 #include "orionld/pernot/pernotSubCacheLookup.h"               // pernotSubCacheLookup
 #include "orionld/mqtt/mqttParse.h"                            // mqttParse
 #include "orionld/mqtt/mqttConnectionEstablish.h"              // mqttConnectionEstablish
 #include "orionld/mqtt/mqttDisconnect.h"                       // mqttDisconnect
-#include "orionld/q/QNode.h"                                   // QNode
 #include "orionld/q/qRender.h"                                 // qRender
 #include "orionld/q/qRelease.h"                                // qRelease
 #include "orionld/q/qAliasCompact.h"                           // qAliasCompact
@@ -73,24 +73,24 @@ bool orionldPostSubscriptions(void)
   if ((experimental == false) || (orionldState.in.legacy != NULL))
     return legacyPostSubscriptions();  // this will be removed!! (after thorough testing)
 
-  KjNode*       subP            = orionldState.requestTree;
-  KjNode*       subIdP          = orionldState.payloadIdNode;
-  KjNode*       endpointP       = NULL;
-  KjNode*       ldqNodeP        = NULL;
-  KjNode*       uriP            = NULL;
-  KjNode*       notifierInfoP   = NULL;
-  KjNode*       geoCoordinatesP = NULL;
-  QNode*        qTree           = NULL;
-  char*         qRenderedForDb  = NULL;
-  bool          mqtt            = false;
-  char*         subId           = NULL;
-  bool          b               = false;
-  bool          qValidForV2     = false;
-  bool          qIsMq           = false;
-  KjNode*       showChangesP    = NULL;
-  KjNode*       sysAttrsP       = NULL;
-  double        timeInterval    = 0;
-  RenderFormat  renderFormat    = RF_NORMALIZED;
+  KjNode*              subP            = orionldState.requestTree;
+  KjNode*              subIdP          = orionldState.payloadIdNode;
+  KjNode*              endpointP       = NULL;
+  KjNode*              ldqNodeP        = NULL;
+  KjNode*              uriP            = NULL;
+  KjNode*              notifierInfoP   = NULL;
+  KjNode*              geoCoordinatesP = NULL;
+  QNode*               qTree           = NULL;
+  char*                qRenderedForDb  = NULL;
+  bool                 mqtt            = false;
+  char*                subId           = NULL;
+  bool                 b               = false;
+  bool                 qValidForV2     = false;
+  bool                 qIsMq           = false;
+  KjNode*              showChangesP    = NULL;
+  KjNode*              sysAttrsP       = NULL;
+  double               timeInterval    = 0;
+  OrionldRenderFormat  renderFormat    = RF_NORMALIZED;
 
   b = pCheckSubscription(subP,
                          true,
@@ -134,7 +134,7 @@ bool orionldPostSubscriptions(void)
     //
     char* detail = NULL;
     if ((subCacheItemLookup(orionldState.tenantP->tenant, subId)   != NULL) ||
-        (pernotSubCacheLookup(orionldState.tenantP->tenant, subId) != NULL) ||
+        (pernotSubCacheLookup(subId, orionldState.tenantP->tenant) != NULL) ||
         (mongocSubscriptionExists(subId, &detail)                  == true))
     {
       if (detail == NULL)
@@ -152,9 +152,8 @@ bool orionldPostSubscriptions(void)
   }
   else
   {
-    strncpy(subscriptionId, "urn:ngsi-ld:subscription:", sizeof(subscriptionId) - 1);
-    uuidGenerate(&subscriptionId[25], sizeof(subscriptionId) - 25, false);
-
+    char subscriptionId[80];
+    uuidGenerate(subscriptionId, sizeof(subscriptionId), "urn:ngsi-ld:subscription:");
     subIdP = kjString(orionldState.kjsonP, "id", subscriptionId);
   }
 
@@ -318,7 +317,7 @@ bool orionldPostSubscriptions(void)
     if (cSubP != NULL)
       subCacheItemRemove(cSubP);
     else
-      pernotSubCacheRemove(pSubP);
+      pernotItemRelease(pSubP);
 
     if (qTree != NULL)
       qRelease(qTree);

@@ -32,14 +32,15 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "orionld/common/orionldState.h"                         // orionldState, localIpAndPort
 #include "orionld/types/OrionldTenant.h"                         // OrionldTenant
 #include "orionld/types/RegistrationMode.h"                      // registrationMode
-#include "orionld/context/OrionldContext.h"                      // OrionldContext
-#include "orionld/regCache/RegCache.h"                           // RegCache, RegCacheItem
-#include "orionld/regCache/regCacheIdPatternRegexCompile.h"      // regCacheIdPatternRegexCompile
-#include "orionld/forwarding/DistOpType.h"                       // distOpTypeMask
+#include "orionld/types/RegCache.h"                              // RegCache
+#include "orionld/types/RegCacheItem.h"                          // RegCacheItem
+#include "orionld/types/OrionldContext.h"                        // OrionldContext
+#include "orionld/types/DistOpType.h"                            // distOpTypeMask
+#include "orionld/common/orionldState.h"                         // orionldState, localIpAndPort
 #include "orionld/kjTree/kjTreeLog.h"                            // kjTreeLog
+#include "orionld/regCache/regCacheIdPatternRegexCompile.h"      // regCacheIdPatternRegexCompile
 #include "orionld/regCache/regCacheItemAdd.h"                    // Own interface
 
 
@@ -166,6 +167,13 @@ RegCacheItem* regCacheItemAdd(RegCache* rcP, const char* registrationId, KjNode*
   rciP->contextP  = fwdContextP;
   rciP->ipAndPort = regIpAndPortExtract(regP);
   rciP->next      = NULL;
+
+  // Host Alias
+  KjNode* hostAliasP = kjLookup(rciP->regTree, "hostAlias");
+  if (hostAliasP != NULL)
+    rciP->hostAlias = strdup(hostAliasP->value.s);
+  else
+    rciP->hostAlias = rciP->ipAndPort;  // Fallback solution
 
   // Counters and timestamps - create if they don't exist
   if (fromDb == false)

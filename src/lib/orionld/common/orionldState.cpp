@@ -38,13 +38,12 @@ extern "C"
 
 #include "orionld/types/OrionldGeoIndex.h"                       // OrionldGeoIndex
 #include "orionld/types/OrionldTenant.h"                         // OrionldTenant
+#include "orionld/types/QNode.h"                                 // QNode
+#include "orionld/types/PernotSubCache.h"                        // PernotSubCache
 #include "orionld/db/dbConfiguration.h"                          // DB_DRIVER_MONGOC
 #include "orionld/context/orionldCoreContext.h"                  // orionldCoreContext, ORIONLD_CORE_CONTEXT_URL_V*
-#include "orionld/troe/troe.h"                                   // TroeMode
 #include "orionld/common/numberToDate.h"                         // numberToDate
-#include "orionld/q/QNode.h"                                     // QNode
 #include "orionld/common/performance.h"                          // REQUEST_PERFORMANCE
-#include "orionld/pernot/PernotSubCache.h"                       // PernotSubCache
 #include "orionld/common/orionldState.h"                         // Own interface
 
 
@@ -105,9 +104,12 @@ char              pgPortString[16];
 char              mongoServerVersion[32];
 char              userAgentHeaderNoLF[64];     // "User-Agent: orionld/" + ORIONLD_VERSION - initialized in orionldServiceInit()
 char              hostHeaderNoLF[128];
-char              hostHeader[128];             // Host: xxx
+char              hostHeader[256];             // Host: xxx
 size_t            hostHeaderLen;
 PernotSubCache    pernotSubCache;
+EntityMap*        entityMaps        = NULL;    // Used by GET /entities in the distributed case, for pagination
+bool              entityMapsEnabled = false;
+
 
 
 //
@@ -177,7 +179,7 @@ void orionldStateInit(MHD_Connection* connection)
   //
   // Outgoing HTTP headers
   //
-  orionldState.out.contentType    = JSON;              // Default response Content-Type is "application/json"
+  orionldState.out.contentType    = MT_JSON;           // Default response Content-Type is "application/json"
   orionldHeaderSetInit(&orionldState.out.headers, 5);  // 5 response headers, to start with
 
   //
@@ -250,7 +252,7 @@ void orionldStateRelease(void)
 
 #if 0
   //
-  // This was added to fix a leak in contextToPayload(), orionldMhdConnectionTreat.cpp, calling kjClone(). a number of times
+  // This was added to fix a leak in contextToPayload(), mhdConnectionTreat.cpp, calling kjClone(). a number of times
   // It happens for responses to GET that contain more than one item in the entity array.
   // Each item in the entity array needs a cloned context
   //
@@ -285,12 +287,6 @@ void orionldStateRelease(void)
 
   if (orionldState.qMongoFilterP != NULL)
     delete orionldState.qMongoFilterP;
-
-  if (orionldState.compoundValueRoot != NULL)
-  {
-    delete orionldState.compoundValueRoot;
-    orionldState.compoundValueRoot = NULL;
-  }
 }
 
 

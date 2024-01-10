@@ -24,8 +24,11 @@
 */
 #include "logMsg/logMsg.h"                                     // LM_*
 
+#include "orionld/types/QNode.h"                               // QNode
 #include "orionld/common/orionldState.h"                       // orionldState
-#include "orionld/q/QNode.h"                                   // QNode
+#include "orionld/common/dateTime.h"                           // dateTimeFromString
+#include "orionld/q/qNode.h"                                   // qNode
+#include "orionld/q/qNodeType.h"                               // qNodeType
 #include "orionld/q/qLexCheck.h"                               // qLexCheck
 #include "orionld/q/qPresent.h"                                // qListPresent
 #include "orionld/q/qListRelease.h"                            // qListRelease
@@ -94,10 +97,13 @@ static QNode* qTermPush(QNode* prev, char* term, bool* lastTermIsTimestampP, cha
 
   LM_T(LmtQ, ("term: '%s' (termLen: %d)", term, termLen));
 
-  if      (strcmp(&term[termLen - 10], "modifiedAt") == 0)    *lastTermIsTimestampP = true;
-  else if (strcmp(&term[termLen -  9], "createdAt")  == 0)    *lastTermIsTimestampP = true;
-  else if (strcmp(&term[termLen - 10], "observedAt") == 0)    *lastTermIsTimestampP = true;
-  else                                                        *lastTermIsTimestampP = false;
+  *lastTermIsTimestampP = false;
+  if (termLen >= 9)
+  {
+    if      (strcmp(&term[termLen - 10], "modifiedAt") == 0)    *lastTermIsTimestampP = true;
+    else if (strcmp(&term[termLen -  9], "createdAt")  == 0)    *lastTermIsTimestampP = true;
+    else if (strcmp(&term[termLen - 10], "observedAt") == 0)    *lastTermIsTimestampP = true;
+  }
 
   if (*lastTermIsTimestampP == true)
     LM_T(LmtQ, ("Pushing a Timestamp term: '%s'", term));
@@ -177,10 +183,11 @@ static QNode* qTermPush(QNode* prev, char* term, bool* lastTermIsTimestampP, cha
     {
       LM_T(LmtQ, ("'%s' might be a DateTime", term));
 
-      double dTime = parse8601Time(term);
+      char   errorString[256];
+      double dTime = dateTimeFromString(term, errorString, sizeof(errorString));
 
-      if (dTime == -1)
-        LM_W(("Invalid DateTime: '%s'", term));
+      if (dTime < 0)
+        LM_W(("Invalid DateTime: '%s': %s", term, errorString));
       else
       {
         LM_T(LmtQ, ("term: '%s', dTime: %f", term, dTime));
@@ -407,10 +414,11 @@ QNode* qLex(char* s, bool timestampToFloat, char** titleP, char** detailsP)
       LM_T(LmtQ, ("timestampToFloat: %s", (timestampToFloat == true)? "true" : "false"));
       if (timestampToFloat == true)
       {
+        char      errorString[256];
         double    dateTime;
         uint64_t  sLen = (uint64_t) (sP - start - 2);
 
-        if ((sLen >= 9) && (start[4] == '-') && ((dateTime = parse8601Time(start)) != -1))
+        if ((sLen >= 9) && (start[4] == '-') && ((dateTime = dateTimeFromString(start, errorString, sizeof(errorString))) > 0))
         {
           if (lastTermIsTimestamp)
             current = qDateTimePush(current, dateTime);

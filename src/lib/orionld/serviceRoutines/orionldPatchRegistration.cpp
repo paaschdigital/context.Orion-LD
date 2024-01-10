@@ -36,23 +36,26 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                     // LM_*
 
+#include "orionld/types/RegistrationMode.h"                    // registrationMode
+#include "orionld/types/RegCacheItem.h"                        // RegCacheItem
+#include "orionld/types/OrionLdRestService.h"                  // OrionLdRestService
+#include "orionld/types/DistOpType.h"                          // distOpTypeMask
 #include "orionld/common/orionldState.h"                       // orionldState
 #include "orionld/common/orionldError.h"                       // orionldError
 #include "orionld/common/CHECK.h"                              // STRING_CHECK, ...
-#include "orionld/types/RegistrationMode.h"                    // registrationMode
+#include "orionld/common/tenantList.h"                         // tenant0
+#include "orionld/common/dateTime.h"                           // dateTimeFromString
 #include "orionld/payloadCheck/PCHECK.h"                       // PCHECK_URI
 #include "orionld/payloadCheck/pcheckRegistration.h"           // pcheckRegistration
-#include "orionld/rest/OrionLdRestService.h"                   // OrionLdRestService
 #include "orionld/legacyDriver/legacyPatchRegistration.h"      // legacyPatchRegistration
-#include "orionld/regCache/RegCache.h"                         // RegCacheItem
 #include "orionld/regCache/regCacheItemLookup.h"               // regCacheItemLookup
 #include "orionld/regCache/regCacheIdPatternRegexCompile.h"    // regCacheIdPatternRegexCompile
 #include "orionld/regCache/regCacheItemRegexRelease.h"         // regCacheItemRegexRelease
+#include "orionld/regCache/regCachePresent.h"                  // regCachePresent
 #include "orionld/dbModel/dbModelFromApiRegistration.h"        // dbModelFromApiRegistration
 #include "orionld/dbModel/dbModelToApiRegistration.h"          // dbModelToApiRegistration
 #include "orionld/mongoc/mongocRegistrationGet.h"              // mongocRegistrationGet
 #include "orionld/mongoc/mongocRegistrationReplace.h"          // mongocRegistrationReplace
-#include "orionld/forwarding/DistOpType.h"                     // distOpTypeMask
 #include "orionld/serviceRoutines/orionldPatchRegistration.h"  // Own Interface
 
 
@@ -192,10 +195,13 @@ static void kjCompoundPatch(KjNode* container, const char* fieldName, KjNode* rh
 //
 static void kjDateTimePatch(KjNode* container, const char* fieldName, char* dateTime)
 {
+  char    errorString[256];
   KjNode* nodeP  = kjLookup(container, fieldName);
-  double  dValue = parse8601Time(dateTime);
+  double  dValue = dateTimeFromString(dateTime, errorString, sizeof(errorString));
 
-  if (nodeP != NULL)
+  if (dValue < 0)
+    LM_E(("dateTimeFromString: %s", errorString));
+  else if (nodeP != NULL)
   {
     nodeP->type    = KjFloat;
     nodeP->value.f = dValue;
@@ -769,8 +775,8 @@ bool orionldPatchRegistration(void)
       LM_X(1, ("Internal Error (if this happens it's a bug of Orion-LD - the idPattern was checked in pcheckEntityInfo and all OK"));
   }
 
-  // extern void regCachePresent(void);
-  // regCachePresent();
+  if (lmTraceIsSet(LmtRegCache))
+    regCachePresent();
 
   //
   // Return 204 if all OK

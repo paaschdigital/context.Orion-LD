@@ -31,9 +31,9 @@ extern "C"
 #include "logMsg/logMsg.h"                                     // LM_*
 #include "logMsg/traceLevels.h"                                // Lmt*
 
+#include "orionld/types/PgAppendBuffer.h"                      // PgAppendBuffer
 #include "orionld/common/orionldState.h"                       // orionldState
 #include "orionld/common/uuidGenerate.h"                       // uuidGenerate
-#include "orionld/troe/PgAppendBuffer.h"                       // PgAppendBuffer
 #include "orionld/troe/pgAttributeAppend.h"                    // pgAttributeAppend
 #include "orionld/troe/pgSubAttributeBuild.h"                  // pgSubAttributeBuild
 #include "orionld/troe/pgObservedAtExtract.h"                  // pgObservedAtExtract
@@ -67,7 +67,7 @@ bool pgAttributeBuild
   KjNode* valueNodeP    = NULL;
   KjNode* subAttrV      = kjArray(orionldState.kjsonP, NULL);
 
-  uuidGenerate(instanceId, sizeof(instanceId), true);
+  uuidGenerate(instanceId, sizeof(instanceId), "urn:ngsi-ld:attribute:instance:");
 
   // Extract attribute info, call subAttributeBuild when necessary
   KjNode* nodeP = attributeNodeP->value.firstChildP;

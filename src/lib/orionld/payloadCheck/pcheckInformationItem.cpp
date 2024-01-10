@@ -29,13 +29,14 @@ extern "C"
 #include "kjson/kjLookup.h"                                      // kjLookup
 }
 
+#include "orionld/types/RegistrationMode.h"                     // RegistrationMode
+#include "orionld/types/RegCache.h"                             // RegCache
+#include "orionld/types/RegCacheItem.h"                         // RegCacheItem
 #include "orionld/common/orionldState.h"                        // orionldState
 #include "orionld/common/orionldError.h"                        // orionldError
 #include "orionld/common/CHECK.h"                               // STRING_CHECK, ...
-#include "orionld/types/RegistrationMode.h"                     // RegistrationMode
 #include "orionld/context/orionldAttributeExpand.h"             // orionldAttributeExpand
 #include "orionld/kjTree/kjStringValueLookupInArray.h"          // kjStringValueLookupInArray
-#include "orionld/regCache/RegCache.h"                          // RegCacheItem
 #include "orionld/kjTree/kjChildCount.h"                        // kjChildCount
 #include "orionld/mongoc/mongocEntitiesQuery.h"                 // mongocEntitiesQuery
 #include "orionld/mongoc/mongocEntityLookup.h"                  // mongocEntityLookup
@@ -306,7 +307,7 @@ bool pCheckOverlappingEntities(KjNode* entitiesP, KjNode* propertiesP, KjNode* r
 
   if (entitiesP == NULL)
   {
-    KjNode* entityArray = mongocEntitiesQuery(NULL, NULL, NULL, &attrsV, NULL, NULL, NULL, NULL);
+    KjNode* entityArray = mongocEntitiesQuery(NULL, NULL, NULL, &attrsV, NULL, NULL, NULL, NULL, false);
     if ((entityArray != NULL) && (entityArray->value.firstChildP != NULL))
     {
       KjNode*      _idP = kjLookup(entityArray->value.firstChildP, "_id");
@@ -349,7 +350,7 @@ bool pCheckOverlappingEntities(KjNode* entitiesP, KjNode* propertiesP, KjNode* r
         entityTypeList.array = entityTypeArray;
         entityTypeArray[0]   = entityType;
 
-        KjNode* entityArray = mongocEntitiesQuery(&entityTypeList, NULL, entityIdPattern, &attrsV, NULL, NULL, NULL, NULL);
+        KjNode* entityArray = mongocEntitiesQuery(&entityTypeList, NULL, entityIdPattern, &attrsV, NULL, NULL, NULL, NULL, false);
         if ((entityArray != NULL) && (entityArray->value.firstChildP != NULL))
         {
           KjNode*      _idP = kjLookup(entityArray->value.firstChildP, "_id");

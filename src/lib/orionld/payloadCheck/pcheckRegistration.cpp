@@ -31,11 +31,11 @@ extern "C"
 #include "kjson/kjBuilder.h"                                    // kjChildAdd, ...
 }
 
+#include "orionld/types/RegistrationMode.h"                     // RegistrationMode
+#include "orionld/types/OrionldContext.h"                       // OrionldContext
 #include "orionld/common/orionldState.h"                        // orionldState
 #include "orionld/common/orionldError.h"                        // orionldError
 #include "orionld/common/CHECK.h"                               // STRING_CHECK, ...
-#include "orionld/types/RegistrationMode.h"                     // RegistrationMode
-#include "orionld/context/OrionldContext.h"                     // OrionldContext
 #include "orionld/context/orionldAttributeExpand.h"             // orionldAttributeExpand
 #include "orionld/payloadCheck/PCHECK.h"                        // PCHECK_*
 #include "orionld/payloadCheck/pCheckRegistrationMode.h"        // pCheckRegistrationMode
@@ -80,8 +80,8 @@ extern "C"
 //
 bool pcheckRegistration(const char* regModeString, KjNode* registrationP, const char* currentRegId, bool idCanBePresent, bool creation, KjNode**  propertyTreeP, OrionldContext** contextPP)
 {
-  KjNode*  idP                   = NULL;  // Optional but already extracted by orionldMhdConnectionInit
-  KjNode*  typeP                 = NULL;  // Mandatory but already extracted by orionldMhdConnectionInit
+  KjNode*  idP                   = NULL;  // Optional but already extracted in mhdConnectionInit
+  KjNode*  typeP                 = NULL;  // Mandatory but already extracted in mhdConnectionInit
   KjNode*  nameP                 = NULL;
   KjNode*  descriptionP          = NULL;
   KjNode*  informationP          = NULL;
@@ -96,6 +96,7 @@ bool pcheckRegistration(const char* regModeString, KjNode* registrationP, const 
   KjNode*  contextSourceInfoP    = NULL;
   KjNode*  scopeP                = NULL;
   KjNode*  modeP                 = NULL;
+  KjNode*  hostAliasP            = NULL;
   KjNode*  operationsP           = NULL;
   KjNode*  managementP           = NULL;
   KjNode*  propertyTree          = kjObject(orionldState.kjsonP, "properties");  // Temp storage for properties
@@ -225,7 +226,7 @@ bool pcheckRegistration(const char* regModeString, KjNode* registrationP, const 
 
       if (pcheckGeoPropertyValue(locationP, NULL, NULL, nodeP->name) == false)
       {
-        orionldState.httpStatusCode = SccBadRequest;
+        orionldState.httpStatusCode = 400;
         return false;
       }
     }
@@ -236,7 +237,7 @@ bool pcheckRegistration(const char* regModeString, KjNode* registrationP, const 
       EMPTY_OBJECT_CHECK(nodeP, nodeP->name);
       if (pcheckGeoPropertyValue(observationSpaceP, NULL, NULL, nodeP->name) == false)
       {
-        orionldState.httpStatusCode = SccBadRequest;
+        orionldState.httpStatusCode = 400;
         return false;
       }
     }
@@ -270,6 +271,12 @@ bool pcheckRegistration(const char* regModeString, KjNode* registrationP, const 
       EMPTY_ARRAY_CHECK(contextSourceInfoP, "contextSourceInfo");
       if (pCheckKeyValueArray(contextSourceInfoP, contextPP) == false)
         return false;
+    }
+    else if (strcmp(nodeP->name, "hostAlias") == 0)
+    {
+      DUPLICATE_CHECK(hostAliasP, "hostAlias", nodeP);
+      STRING_CHECK(nodeP, "hostAlias");
+      EMPTY_STRING_CHECK(nodeP, "hostAlias");
     }
     else if (strcmp(nodeP->name, "scope") == 0)
     {

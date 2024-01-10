@@ -90,26 +90,9 @@ extern "C"
 #include "parseArgs/paUsage.h"
 #include "logMsg/logMsg.h"
 
-#include "jsonParse/jsonRequest.h"
-#include "rest/ConnectionInfo.h"
-#include "rest/RestService.h"
-#include "rest/restReply.h"
-#include "rest/rest.h"
 #include "rest/httpRequestSend.h"
-
-#include "common/sem.h"
-#include "common/globals.h"
-#include "common/Timer.h"
 #include "common/compileInfo.h"
-#include "common/SyncQOverflow.h"
-
-#include "orionTypes/EntityTypeVectorResponse.h"
-#include "ngsi/ParseData.h"
 #include "ngsiNotify/QueueNotifier.h"
-#include "ngsiNotify/QueueWorkers.h"
-#include "ngsiNotify/senderThread.h"
-
-#include "common/string.h"
 #include "alarmMgr/alarmMgr.h"
 #include "metricsMgr/metricsMgr.h"
 #include "logSummary/logSummary.h"
@@ -124,7 +107,8 @@ extern "C"
 #include "orionld/context/orionldCoreContext.h"               // ORIONLD_CORE_CONTEXT_URL_*
 #include "orionld/context/orionldContextFromUrl.h"            // contextDownloadListInit, contextDownloadListRelease
 #include "orionld/contextCache/orionldContextCacheRelease.h"  // orionldContextCacheRelease
-#include "orionld/rest/orionldServiceInit.h"                  // orionldServiceInit
+#include "orionld/service/orionldServiceInit.h"               // orionldServiceInit
+#include "orionld/entityMaps/entityMapsRelease.h"             // entityMapsRelease
 #include "orionld/db/dbInit.h"                                // dbInit
 #include "orionld/mqtt/mqttRelease.h"                         // mqttRelease
 #include "orionld/regCache/regCacheInit.h"                    // regCacheInit
@@ -132,6 +116,7 @@ extern "C"
 #include "orionld/regCache/regCacheRelease.h"                 // regCacheRelease
 #include "orionld/pernot/pernotSubCacheInit.h"                // pernotSubCacheInit
 #include "orionld/pernot/pernotLoop.h"                        // pernotLoopStart
+#include "orionld/pernot/pernotRelease.h"                     // pernotRelease
 
 #include "orionld/version.h"
 #include "orionld/orionRestServices.h"
@@ -146,10 +131,7 @@ extern "C"
 #include "orionld/troe/pgVersionGet.h"                        // pgVersionGet
 #include "orionld/troe/pgConnectionPoolsFree.h"               // pgConnectionPoolsFree
 #include "orionld/troe/pgConnectionPoolsPresent.h"            // pgConnectionPoolsPresent
-#include "orionld/forwarding/distOpInit.h"                    // distOpInit
-#include "orionld/socketService/socketServiceInit.h"          // socketServiceInit
-#include "orionld/socketService/socketServiceRun.h"           // socketServiceRun
-
+#include "orionld/distOp/distOpInit.h"                        // distOpInit
 
 #include "orionld/version.h"
 #include "orionld/orionRestServices.h"
@@ -250,6 +232,8 @@ int             troePoolSize;
 bool            socketService;
 unsigned short  socketServicePort;
 bool            distributed;
+char            brokerId[136];
+char            wip[512];
 bool            noNotifyFalseUpdate;
 bool            idIndex;
 bool            noswap;
@@ -334,6 +318,8 @@ bool            triggerOperation = false;
 #define SOCKET_SERVICE_DESC    "enable the socket service - accept connections via a normal TCP socket"
 #define SOCKET_SERVICE_PORT_DESC  "port to receive new socket service connections"
 #define DISTRIBUTED_DESC       "turn on distributed operation"
+#define BROKER_ID_DESC         "identity of this broker instance for registrations - for the Via header"
+#define WIP_DESC               "Enable concepts that are 'Work In Progress' (e.g. -wip entityMaps)"
 #define FORWARDING_DESC        "turn on distributed operation (deprecated)"
 #define ID_INDEX_DESC          "automatic mongo index on _id.id"
 #define NOSWAP_DESC            "no swapping - for testing only!!!"
@@ -348,7 +334,7 @@ bool            triggerOperation = false;
 #define DBURI_DESC             "complete URI for database connection"
 #define DEBUG_CURL_DESC        "turn on debugging of libcurl - to the broker's logfile"
 #define CSUBCOUNTERS_DESC      "number of subscription counter updates before flush from sub-cache to DB (0: never, 1: always)"
-#define CORE_CONTEXT_DESC      "Core context version (v1.0|v1.3|v1.4|v1.5|v1.6|v1.7) - v1.6 is default"
+#define CORE_CONTEXT_DESC      "core context version (v1.0|v1.3|v1.4|v1.5|v1.6|v1.7) - v1.6 is default"
 
 
 
@@ -435,12 +421,14 @@ PaArgument paArgs[] =
   { "-troeUser",              troeUser,                 "TROE_USER",                 PaString,  PaOpt,  _i "postgres",   PaNL,   PaNL,             TROE_HOST_USER           },
   { "-troePwd",               troePwd,                  "TROE_PWD",                  PaString,  PaOpt,  _i "password",   PaNL,   PaNL,             TROE_HOST_PWD            },
   { "-troePoolSize",          &troePoolSize,            "TROE_POOL_SIZE",            PaInt,     PaOpt,  10,              0,      1000,             TROE_POOL_DESC           },
-  { "-distributed",           &distributed,             "DISTRIBUTED",               PaBool,    PaOpt,  false,           false,  true,             DISTRIBUTED_DESC         },
   { "-noNotifyFalseUpdate",   &noNotifyFalseUpdate,     "NO_NOTIFY_FALSE_UPDATE",    PaBool,    PaOpt,  false,           false,  true,             NO_NOTIFY_FALSE_UPDATE_DESC  },
-  { "-triggerOperation",      &triggerOperation,        "TRIGGER_OPERATION",         PaBool,    PaHid,  false,           false,  true,             TRIGGER_OPERATION_DESC   },
   { "-experimental",          &experimental,            "EXPERIMENTAL",              PaBool,    PaOpt,  false,           false,  true,             EXPERIMENTAL_DESC        },
   { "-mongocOnly",            &mongocOnly,              "MONGOCONLY",                PaBool,    PaOpt,  false,           false,  true,             MONGOCONLY_DESC          },
   { "-cSubCounters",          &cSubCounters,            "CSUB_COUNTERS",             PaInt,     PaOpt,  20,              0,      PaNL,             CSUBCOUNTERS_DESC        },
+  { "-distributed",           &distributed,             "DISTRIBUTED",               PaBool,    PaOpt,  false,           false,  true,             DISTRIBUTED_DESC         },
+  { "-brokerId",              &brokerId,                "BROKER_ID",                 PaStr,     PaOpt,  _i "",           PaNL,   PaNL,             BROKER_ID_DESC           },
+  { "-wip",                   wip,                      "WIP",                       PaStr,     PaHid,  _i "",           PaNL,   PaNL,             WIP_DESC                 },
+  { "-triggerOperation",      &triggerOperation,        "TRIGGER_OPERATION",         PaBool,    PaHid,  false,           false,  true,             TRIGGER_OPERATION_DESC   },
   { "-forwarding",            &distributed,             "FORWARDING",                PaBool,    PaHid,  false,           false,  true,             FORWARDING_DESC          },
   { "-socketService",         &socketService,           "SOCKET_SERVICE",            PaBool,    PaHid,  false,           false,  true,             SOCKET_SERVICE_DESC      },
   { "-ssPort",                &socketServicePort,       "SOCKET_SERVICE_PORT",       PaUShort,  PaHid,  1027,            PaNL,   PaNL,             SOCKET_SERVICE_PORT_DESC },
@@ -629,6 +617,14 @@ void exitFunc(void)
     pgConnectionPoolsPresent();
     pgConnectionPoolsFree();
   }
+
+  // Cleanup entity maps
+  if (entityMaps != NULL)
+    entityMapsRelease();
+
+  // Cleanup periodic notifications
+  if (pernot == true)
+    pernotRelease();
 
   kaBufferReset(&kalloc, KFALSE);
 }
@@ -926,7 +922,7 @@ static char* coreContextUrlSetup(const char* version)
 */
 int main(int argC, char* argV[])
 {
-# if 0
+#if 0
   //
   // Just an experiment.
   // It's an interesting way of "comparing strings"
@@ -1039,7 +1035,7 @@ int main(int argC, char* argV[])
   }
 
   //
-  // If trace levels are set, turn set logLevel to DEBUG, so that the trace messages will actually pass through
+  // If trace levels are set, set logLevel to DEBUG, so that the trace messages will actually pass through
   //
   if (paIsSet(argC, argV, paArgs, "-t"))
     strncpy(paLogLevel, "DEBUG", sizeof(paLogLevel) - 1);
@@ -1051,6 +1047,18 @@ int main(int argC, char* argV[])
     LM_X(1, ("Invalid version for the Core Context: %s (valid: v1.0|v1.3|v1.4|v1.5|v1.6|v1.7)", coreContextVersion));
 
   lmTimeFormat(0, (char*) "%Y-%m-%dT%H:%M:%S");
+
+  if ((debugCurl == true) && ((lmTraceIsSet(LmtCurl) == false) || (strcmp(paLogLevel, "DEBUG") != 0)))
+  {
+    strncpy(paLogLevel, "DEBUG", sizeof(paLogLevel) - 1);
+    lmTraceLevelSet(LmtCurl, true);
+  }
+
+  if (wip[0] != 0)
+  {
+    if (strcmp(wip, "entityMaps") == 0)
+      entityMapsEnabled = true;
+  }
 
 #if 0
   //
@@ -1097,14 +1105,10 @@ int main(int argC, char* argV[])
   paCleanup();
 
   if (strlen(dbName) > DB_NAME_MAX_LEN)
-  {
     LM_X(1, ("dbName too long (max %d characters)", DB_NAME_MAX_LEN));
-  }
 
   if (useOnlyIPv6 && useOnlyIPv4)
-  {
     LM_X(1, ("Fatal Error (-ipv4 and -ipv6 can not be activated at the same time. They are incompatible)"));
-  }
 
   if (https)
   {
@@ -1160,7 +1164,6 @@ int main(int argC, char* argV[])
   contextDownloadListInit();
 
 
-
   //
   // Initialize the KBASE library
   // This call redirects all log messages from the K-libs to the brokers log file.
@@ -1190,6 +1193,12 @@ int main(int argC, char* argV[])
 
   // localIpAndPort - IP:port for X-Forwarded-For
   snprintf(localIpAndPort, sizeof(localIpAndPort), "%s:%d", orionldHostName, port);
+
+  // brokerId - for the Via header
+  if (brokerId[0] == 0)
+    strncpy(brokerId, localIpAndPort, sizeof(brokerId) - 1);
+  else
+    distributed = true;  // Turn on forwarding if the brokerId CLI is used
 
   orionldStateInit(NULL);
 

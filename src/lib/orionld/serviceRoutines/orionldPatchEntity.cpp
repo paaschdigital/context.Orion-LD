@@ -37,7 +37,6 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "rest/httpHeaderAdd.h"                                  // httpHeaderLinkAdd
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/dotForEq.h"                             // dotForEq
@@ -55,11 +54,11 @@ extern "C"
 #include "orionld/context/orionldAttributeExpand.h"              // orionldAttributeExpand
 #include "orionld/mongoc/mongocEntityLookup.h"                   // mongocEntityLookup
 #include "orionld/mongoc/mongocAttributesAdd.h"                  // mongocAttributesAdd
-#include "orionld/forwarding/distOpRequests.h"                   // distOpRequests
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
-#include "orionld/forwarding/distOpResponses.h"                  // distOpResponses
-#include "orionld/forwarding/distOpSuccess.h"                    // distOpSuccess
-#include "orionld/forwarding/distOpFailure.h"                    // distOpFailure
+#include "orionld/distOp/distOpRequests.h"                       // distOpRequests
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
+#include "orionld/distOp/distOpResponses.h"                      // distOpResponses
+#include "orionld/distOp/distOpSuccess.h"                        // distOpSuccess
+#include "orionld/distOp/distOpFailure.h"                        // distOpFailure
 #include "orionld/notifications/alteration.h"                    // alteration
 #include "orionld/notifications/previousValuePopulate.h"         // previousValuePopulate
 #include "orionld/notifications/sysAttrsStrip.h"                 // sysAttrsStrip
@@ -177,6 +176,10 @@ char* pCheckEntityType2(KjNode* payloadTypeNode, KjNode* dbEntityP, char* entity
 
 
 
+// -----------------------------------------------------------------------------
+//
+// attributeLookup -
+//
 static bool attributeLookup(KjNode* dbAttrsP, char* attrName)
 {
   dotForEq(attrName);
@@ -193,17 +196,21 @@ static bool attributeLookup(KjNode* dbAttrsP, char* attrName)
 
 
 #if 0
+// -----------------------------------------------------------------------------
+//
+// rawResponse -
+//
 void rawResponse(DistOp* distOpList, const char* what)
 {
-  LM_T(LmtDistOpMsgs, ("=============== rawResponse: %s", what));
+  LM_T(LmtSR, ("=============== rawResponse: %s", what));
   for (DistOp* distOpP = distOpList; distOpP != NULL; distOpP = distOpP->next)
   {
     if (distOpP->rawResponse != NULL)
-      LM_T(LmtDistOpMsgs, ("%s: rawResponse: '%s'", distOpP->regP->regId, distOpP->rawResponse));
+      LM_T(LmtSR, ("%s: rawResponse: '%s'", distOpP->regP->regId, distOpP->rawResponse));
     else
-      LM_T(LmtDistOpMsgs, ("%s: rawResponse: NULL", distOpP->regP->regId));
+      LM_T(LmtSR, ("%s: rawResponse: NULL", distOpP->regP->regId));
   }
-  LM_T(LmtDistOpMsgs, ("===================================================================="));
+  LM_T(LmtSR, ("===================================================================="));
 }
 #endif
 
@@ -264,7 +271,7 @@ bool orionldPatchEntity(void)
 
   //
   // If entity type is present in the payload body, it must be a String and identical to the entity type in the database.
-  // [ It is already extracted (by orionldMhdConnectionTreat) and checked for String ]
+  // [ It is already extracted (by mhdConnectionTreat) and checked for String ]
   //
   entityType = pCheckEntityType2(orionldState.payloadTypeNode, dbEntityP, entityType);
 
@@ -376,7 +383,7 @@ bool orionldPatchEntity(void)
 
     bzero(&local, sizeof(local));
     local.requestBody = orionldState.requestTree;
-    distOpSuccess(responseBody, &local, NULL);
+    distOpSuccess(responseBody, &local, entityId, NULL);
   }
 
   //

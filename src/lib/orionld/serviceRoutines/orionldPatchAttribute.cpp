@@ -35,7 +35,7 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "rest/httpHeaderAdd.h"                                  // httpHeaderLinkAdd
+#include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/dotForEq.h"                             // dotForEq
@@ -50,10 +50,9 @@ extern "C"
 #include "orionld/kjTree/kjSort.h"                               // kjStringArraySort
 #include "orionld/mongoc/mongocEntityGet.h"                      // mongocEntityGet
 #include "orionld/mongoc/mongocAttributesAdd.h"                  // mongocAttributesAdd
-#include "orionld/forwarding/DistOp.h"                           // DistOp
-#include "orionld/forwarding/distOpRequests.h"                   // distOpRequests
-#include "orionld/forwarding/distOpResponses.h"                  // distOpResponses
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
+#include "orionld/distOp/distOpRequests.h"                       // distOpRequests
+#include "orionld/distOp/distOpResponses.h"                      // distOpResponses
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
 #include "orionld/notifications/alteration.h"                    // alteration
 #include "orionld/notifications/sysAttrsStrip.h"                 // sysAttrsStrip
 #include "orionld/notifications/previousValuePopulate.h"         // previousValuePopulate
@@ -307,7 +306,7 @@ bool orionldPatchAttribute(void)
 
 
   //
-  // orionldMhdConnectionTreat() expands the attribute name for us.
+  // mhdConnectionTreat() expands the attribute name for us.
   // Here we save it in the orionldState.wildcard array, so that TRoE won't have to expand it
   //
   orionldState.wildcard[1] = orionldState.in.pathAttrExpanded;

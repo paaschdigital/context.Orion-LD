@@ -172,7 +172,7 @@ bool orionldPostBatchUpsert(void)
   //
   orionldState.uriParams.limit  = noOfEntities;
   orionldState.uriParams.offset = 0;
-  KjNode* dbEntityArray = mongocEntitiesQuery(NULL, &eIdArray, NULL, NULL, NULL, NULL, NULL, NULL);
+  KjNode* dbEntityArray = mongocEntitiesQuery(NULL, &eIdArray, NULL, NULL, NULL, NULL, NULL, NULL, false);
   if (dbEntityArray == NULL)
   {
     orionldError(OrionldInternalError, "Database Error", "error querying the database for entities", 500);
@@ -360,7 +360,7 @@ bool orionldPostBatchUpsert(void)
     orionldState.responseTree = response;
   }
 
-  orionldState.out.contentType = JSON;
+  orionldState.out.contentType = MT_JSON;
   orionldState.noLinkHeader    = true;
 
   if ((orionldState.tenantP != &tenant0) && (orionldState.httpStatusCode != 204))

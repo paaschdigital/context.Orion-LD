@@ -24,7 +24,6 @@
 */
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "common/globals.h"                                      // noCache
 #include "cache/subCache.h"                                      // CachedSubscription, subCacheItemLookup, ...
 
 #include "orionld/common/orionldState.h"                         // orionldState
@@ -70,8 +69,6 @@ bool orionldDeleteSubscription(void)
     // FIXME: If mqtt, we need to disconnect from MQTT broker
     //        BUT, not until Orion-LD is able to run without sub-cache
     //
-    // kjTreeLog(subP, "MQTT Subscription?");
-    //
   }
   else
   {
@@ -84,7 +81,7 @@ bool orionldDeleteSubscription(void)
     subCacheItemRemove(cSubP);
   }
 
-  orionldState.httpStatusCode = SccNoContent;
+  orionldState.httpStatusCode = 204;
 
   return true;
 }

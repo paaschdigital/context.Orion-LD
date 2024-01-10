@@ -26,7 +26,8 @@
 
 #include "logMsg/logMsg.h"                                     // TraceLevels, LM_*
 
-#include "orionld/q/QNode.h"                                   // QNode
+#include "orionld/types/QNode.h"                               // QNode
+#include "orionld/q/qNodeType.h"                               // qNodeType
 #include "orionld/q/qPresent.h"                                // Own interface
 
 
@@ -37,6 +38,9 @@
 //
 static void qTreePresent(QNode* qP, int indent, const char* prefix, TraceLevels tLevel)
 {
+  if (lmTraceIsSet(LmtQ) == false)
+    return;
+
   char indentV[100];
 
   memset(indentV, 0x20202020, sizeof(indentV));

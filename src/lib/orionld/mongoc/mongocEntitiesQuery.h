@@ -32,7 +32,7 @@ extern "C"
 
 #include "orionld/types/StringArray.h"                           // StringArray
 #include "orionld/types/OrionldGeoInfo.h"                        // OrionldGeoInfo
-#include "orionld/q/QNode.h"                                     // QNode
+#include "orionld/types/QNode.h"                                 // QNode
 
 
 
@@ -49,7 +49,8 @@ extern KjNode* mongocEntitiesQuery
   QNode*           qNode,
   OrionldGeoInfo*  geoInfoP,
   int64_t*         countP,
-  const char*      geojsonGeometry
+  const char*      geojsonGeometry,
+  bool             onlyIds
 );
 
 #endif  // SRC_LIB_ORIONLD_MONGOC_MONGOCENTITIESQUERY_H_

@@ -44,13 +44,13 @@ extern "C"
 
 #include "cache/CachedSubscription.h"                            // CachedSubscription
 
+#include "orionld/types/OrionldAlteration.h"                     // OrionldAlterationMatch, OrionldAlteration, orionldAlterationType
+#include "orionld/types/OrionLdRestService.h"                    // OrionLdRestService
 #include "orionld/common/orionldState.h"                         // orionldState, coreContextUrl, userAgentHeader
 #include "orionld/common/numberToDate.h"                         // numberToDate
 #include "orionld/common/uuidGenerate.h"                         // uuidGenerate
 #include "orionld/common/eqForDot.h"                             // eqForDot
 #include "orionld/common/langStringExtract.h"                    // langStringExtract
-#include "orionld/types/OrionldAlteration.h"                     // OrionldAlterationMatch, OrionldAlteration, orionldAlterationType
-#include "orionld/rest/OrionLdRestService.h"                     // OrionLdRestService
 #include "orionld/kjTree/kjEntityIdLookupInEntityArray.h"        // kjEntityIdLookupInEntityArray
 #include "orionld/context/orionldCoreContext.h"                  // orionldCoreContextP
 #include "orionld/context/orionldContextItemAliasLookup.h"       // orionldContextItemAliasLookup
@@ -234,7 +234,7 @@ static void attributeToNormalized(KjNode* attrP, const char* lang)
 //
 static void attributeFix(KjNode* attrP, CachedSubscription* subP)
 {
-  bool simplified = (subP->renderFormat == RF_KEYVALUES);
+  bool simplified = (subP->renderFormat == RF_SIMPLIFIED);
   bool concise    = (subP->renderFormat == RF_CONCISE);
 
   // Never mind "location", "observationSpace", and "operationSpace"
@@ -274,8 +274,8 @@ static void attributeFix(KjNode* attrP, CachedSubscription* subP)
     // Here we're "in subAttributeFix"
     //
 
-    // Add the "previousValue", unless RF_KEYVALUES
-    if ((subP->renderFormat != RF_KEYVALUES) && (subP->showChanges == true))
+    // Add the "previousValue", unless RF_SIMPLIFIED
+    if ((subP->renderFormat != RF_SIMPLIFIED) && (subP->showChanges == true))
       previousValueAdd(attrP, attrLongName);
 
     LM_T(LmtPatchEntity, ("Fixing attribute '%s' (JSON type: %s)", attrP->name, kjValueType(attrP->type)));
@@ -291,7 +291,7 @@ static void attributeFix(KjNode* attrP, CachedSubscription* subP)
 
       if (saP->type == KjObject)
       {
-        if (subP->renderFormat == RF_KEYVALUES)
+        if (subP->renderFormat == RF_SIMPLIFIED)
           attributeToSimplified(saP, subP->lang.c_str());
         else if (subP->renderFormat == RF_CONCISE)
           attributeToConcise(saP, &asSimplified, subP->lang.c_str());  // asSimplified is not used down here
@@ -512,10 +512,10 @@ static KjNode* notificationTreeForNgsiV2(OrionldAlterationMatch* matchP)
   if (subP->attributes.size() > 0)
     apiEntityP = attributeFilter(apiEntityP, matchP);
 
-  if ((subP->renderFormat == RF_CROSS_APIS_KEYVALUES) || (subP->renderFormat == RF_CROSS_APIS_KEYVALUES_COMPACT))
+  if ((subP->renderFormat == RF_CROSS_APIS_SIMPLIFIED) || (subP->renderFormat == RF_CROSS_APIS_SIMPLIFIED_COMPACT))
     keyValues = true;
 
-  if ((subP->renderFormat == RF_CROSS_APIS_NORMALIZED_COMPACT) || (subP->renderFormat == RF_CROSS_APIS_KEYVALUES_COMPACT))
+  if ((subP->renderFormat == RF_CROSS_APIS_NORMALIZED_COMPACT) || (subP->renderFormat == RF_CROSS_APIS_SIMPLIFIED_COMPACT))
     compact = true;
 
   KjNode* ngsiv2EntityP = orionldEntityToNgsiV2(subP->contextP, apiEntityP, keyValues, compact);
@@ -539,8 +539,7 @@ static KjNode* notificationTree(OrionldAlterationMatch* matchList)
   KjNode*             notificationP = kjObject(orionldState.kjsonP, NULL);
   char                notificationId[80];
 
-  strncpy(notificationId, "urn:ngsi-ld:Notification:", sizeof(notificationId) - 1);  // notificationId, could be a thread variable ...
-  uuidGenerate(&notificationId[25], sizeof(notificationId) - 25, false);
+  uuidGenerate(notificationId, sizeof(notificationId), "urn:ngsi-ld:Notification:");  // notificationId could be a thread variable ...
 
   KjNode* idNodeP              = kjString(orionldState.kjsonP, "id", notificationId);
   KjNode* typeNodeP            = kjString(orionldState.kjsonP, "type", "Notification");
@@ -594,7 +593,7 @@ static KjNode* notificationTree(OrionldAlterationMatch* matchList)
     kjChildAdd(dataNodeP, apiEntityP);
   }
 
-  if (subP->httpInfo.mimeType == JSONLD)  // Add @context to the entity
+  if (subP->httpInfo.mimeType == MT_JSONLD)  // Add @context to the entity
   {
     KjNode* contextNodeP = kjString(orionldState.kjsonP, "@context", orionldState.contextP->url);  // FIXME: use context from subscription!
     kjChildAdd(notificationP, contextNodeP);
@@ -659,7 +658,7 @@ int notificationSend(OrionldAlterationMatch* mAltP, double timestamp, CURL** cur
   KjNode* notificationP = (ngsiv2 == false)? notificationTree(mAltP) : notificationTreeForNgsiV2(mAltP);
   char*   preferHeader  = NULL;
 
-  if ((ngsiv2 == false) && (mAltP->subP->httpInfo.mimeType == GEOJSON))
+  if ((ngsiv2 == false) && (mAltP->subP->httpInfo.mimeType == MT_GEOJSON))
   {
     char*       geometryProperty = (char*) mAltP->subP->expression.geoproperty.c_str();
     char*       attrs            = NULL;
@@ -770,13 +769,13 @@ int notificationSend(OrionldAlterationMatch* mAltP, double timestamp, CURL** cur
       addLinkHeader = false;
   }
 
-  if (mAltP->subP->httpInfo.mimeType == JSONLD)  // If Content-Type is application/ld+json, modify slot 2 of ioVec
+  if (mAltP->subP->httpInfo.mimeType == MT_JSONLD)  // If Content-Type is application/ld+json, modify slot 2 of ioVec
   {
     ioVec[2].iov_base = (void*) contentTypeHeaderJsonLd;  // REPLACE "application/json" with "application/ld+json"
     ioVec[2].iov_len  = 35;
     addLinkHeader     = false;
   }
-  else if (mAltP->subP->httpInfo.mimeType == GEOJSON)
+  else if (mAltP->subP->httpInfo.mimeType == MT_GEOJSON)
   {
     ioVec[2].iov_base = (void*) contentTypeHeaderGeoJson;  // REPLACE "application/json" with "application/geo+json"
     ioVec[2].iov_len  = 36;
@@ -802,7 +801,7 @@ int notificationSend(OrionldAlterationMatch* mAltP, double timestamp, CURL** cur
     ioVec[6].iov_base = (void*) conciseHeader;
     ioVec[6].iov_len  = 34;
   }
-  else if (mAltP->subP->renderFormat == RF_KEYVALUES)
+  else if (mAltP->subP->renderFormat == RF_SIMPLIFIED)
   {
     ioVec[6].iov_base = (void*) simplifiedHeader;
     ioVec[6].iov_len  = 37;
@@ -812,7 +811,7 @@ int notificationSend(OrionldAlterationMatch* mAltP, double timestamp, CURL** cur
     ioVec[6].iov_base = (void*) normalizedHeaderNgsiV2;
     ioVec[6].iov_len  = 32;
   }
-  else if ((mAltP->subP->renderFormat == RF_CROSS_APIS_KEYVALUES) || (mAltP->subP->renderFormat == RF_CROSS_APIS_KEYVALUES_COMPACT))
+  else if ((mAltP->subP->renderFormat == RF_CROSS_APIS_SIMPLIFIED) || (mAltP->subP->renderFormat == RF_CROSS_APIS_SIMPLIFIED_COMPACT))
   {
     ioVec[6].iov_base = (void*) keyValuesHeaderNgsiV2;
     ioVec[6].iov_len  = 31;

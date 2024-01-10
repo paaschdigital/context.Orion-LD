@@ -38,12 +38,12 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "rest/httpHeaderAdd.h"                                  // httpHeaderLocationAdd, httpHeaderLinkAdd
-
+#include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/performance.h"                          // PERFORMANCE
 #include "orionld/common/responseFix.h"                          // responseFix
+#include "orionld/http/httpHeaderLocationAdd.h"                  // httpHeaderLocationAdd
 #include "orionld/legacyDriver/legacyPostEntities.h"             // legacyPostEntities
 #include "orionld/payloadCheck/PCHECK.h"                         // PCHECK_*
 #include "orionld/payloadCheck/pCheckEntityId.h"                 // pCheckEntityId
@@ -53,12 +53,11 @@ extern "C"
 #include "orionld/dbModel/dbModelFromApiEntity.h"                // dbModelFromApiEntity
 #include "orionld/mongoc/mongocEntityLookup.h"                   // mongocEntityLookup
 #include "orionld/mongoc/mongocEntityInsert.h"                   // mongocEntityInsert
-#include "orionld/forwarding/DistOp.h"                           // DistOp
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
-#include "orionld/forwarding/distOpSuccess.h"                    // distOpSuccess
-#include "orionld/forwarding/distOpFailure.h"                    // distOpFailure
-#include "orionld/forwarding/distOpRequests.h"                   // distOpRequests
-#include "orionld/forwarding/distOpResponses.h"                  // distOpResponses
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
+#include "orionld/distOp/distOpSuccess.h"                        // distOpSuccess
+#include "orionld/distOp/distOpFailure.h"                        // distOpFailure
+#include "orionld/distOp/distOpRequests.h"                       // distOpRequests
+#include "orionld/distOp/distOpResponses.h"                      // distOpResponses
 #include "orionld/kjTree/kjChildCount.h"                         // kjChildCount
 #include "orionld/kjTree/kjSort.h"                               // kjStringArraySort
 #include "orionld/serviceRoutines/orionldPostEntities.h"         // Own interface
@@ -152,9 +151,9 @@ bool orionldPostEntities(void)
 
   //
   // NOTE
-  //   payloadParseAndExtractSpecialFields() from orionldMhdConnectionTreat() decouples the entity id and type
+  //   payloadParseAndExtractSpecialFields() from mhdConnectionTreat() decouples the entity id and type
   //   from the payload body, so, the entity type is not expanded by pCheckEntity()
-  //   The expansion is instead done by payloadTypeNodeFix, called by orionldMhdConnectionTreat
+  //   The expansion is instead done by payloadTypeNodeFix, called by mhdConnectionTreat
   //
 
   // dbModelFromApiEntity destroys the tree, need to make a copy for notifications and TRoE
@@ -234,7 +233,7 @@ bool orionldPostEntities(void)
     DistOp local;
     bzero(&local, sizeof(local));
     local.requestBody = cloneForTroeP;
-    distOpSuccess(responseBody, &local, NULL);
+    distOpSuccess(responseBody, &local, NULL, NULL);
   }
 
   //

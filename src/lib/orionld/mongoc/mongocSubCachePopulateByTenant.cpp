@@ -32,12 +32,12 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
+#include "orionld/types/OrionldTenant.h"                         // OrionldTenant
+#include "orionld/types/QNode.h"                                 // QNode
 #include "orionld/common/orionldState.h"                         // mongocPool
 #include "orionld/common/subCacheApiSubscriptionInsert.h"        // subCacheApiSubscriptionInsert
 #include "orionld/pernot/pernotSubCacheAdd.h"                    // pernotSubCacheAdd
 #include "orionld/dbModel/dbModelToApiSubscription.h"            // dbModelToApiSubscription
-#include "orionld/types/OrionldTenant.h"                         // OrionldTenant
-#include "orionld/q/QNode.h"                                     // QNode
 #include "orionld/context/orionldContextFromUrl.h"               // orionldContextFromUrl
 #include "orionld/mongoc/mongocWriteLog.h"                       // MONGOC_RLOG
 #include "orionld/mongoc/mongocKjTreeFromBson.h"                 // mongocKjTreeFromBson
@@ -82,7 +82,7 @@ bool mongocSubCachePopulateByTenant(OrionldTenant* tenantP, bool refresh)
   // Run the query
   //
   // semTake(&mongoSubscriptionsSem);
-  MONGOC_RLOG("Subscription for sub-cache", tenantP->mongoDbName, "subscriptions", &mongoFilter, LmtMongoc);
+  MONGOC_RLOG("Subscription for sub-cache", tenantP->mongoDbName, "subscriptions", &mongoFilter, NULL, LmtMongoc);
   if ((mongoCursorP = mongoc_collection_find_with_opts(subscriptionsP, &mongoFilter, NULL, NULL)) == NULL)
   {
     mongoc_client_pool_push(mongocPool, connectionP);
@@ -119,13 +119,13 @@ bool mongocSubCachePopulateByTenant(OrionldTenant* tenantP, bool refresh)
       continue;
     }
 
-    QNode*       qTree         = NULL;
-    KjNode*      contextNodeP  = NULL;
-    KjNode*      coordinatesP  = NULL;
-    KjNode*      showChangesP  = NULL;
-    KjNode*      sysAttrsP     = NULL;
-    RenderFormat renderFormat  = RF_NORMALIZED;
-    double       timeInterval  = 0;
+    QNode*              qTree         = NULL;
+    KjNode*             contextNodeP  = NULL;
+    KjNode*             coordinatesP  = NULL;
+    KjNode*             showChangesP  = NULL;
+    KjNode*             sysAttrsP     = NULL;
+    OrionldRenderFormat renderFormat  = RF_NORMALIZED;
+    double              timeInterval  = 0;
 
     kjTreeLog(dbSubP, "dbSubP", LmtPernot);
     KjNode*      apiSubP       = dbModelToApiSubscription(dbSubP,

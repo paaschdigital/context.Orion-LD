@@ -31,18 +31,16 @@ extern "C"
 #include "kjson/kjBuilder.h"                                   // kjString, kjFloat, ...
 }
 
-#include "rest/httpHeaderAdd.h"                                // httpHeaderLocationAdd
-
 #include "orionld/common/orionldState.h"                       // orionldState, coreContextUrl
 #include "orionld/common/orionldError.h"                       // orionldError
 #include "orionld/common/uuidGenerate.h"                       // uuidGenerate
+#include "orionld/http/httpHeaderLocationAdd.h"                // httpHeaderLocationAdd
 #include "orionld/payloadCheck/PCHECK.h"                       // PCHECK_OBJECT
 #include "orionld/payloadCheck/pcheckRegistration.h"           // pcheckRegistration
 #include "orionld/payloadCheck/pCheckUri.h"                    // pcheckUri
 #include "orionld/legacyDriver/legacyPostRegistrations.h"      // legacyPostRegistrations
 #include "orionld/mongoc/mongocRegistrationExists.h"           // mongocRegistrationExists
 #include "orionld/mongoc/mongocRegistrationInsert.h"           // mongocRegistrationInsert
-#include "orionld/regCache/RegCache.h"                         // RegCacheItem
 #include "orionld/regCache/regCacheItemAdd.h"                  // regCacheItemAdd
 #include "orionld/dbModel/dbModelFromApiRegistration.h"        // dbModelFromApiRegistration
 #include "orionld/serviceRoutines/orionldPostRegistrations.h"  // Own interface
@@ -161,8 +159,7 @@ bool orionldPostRegistrations(void)
   if (regIdP == NULL)
   {
     // Invent a registration id
-    strncpy(registrationIdV, "urn:ngsi-ld:ContextSourceRegistration:", sizeof(registrationIdV) - 1);
-    uuidGenerate(&registrationIdV[38], sizeof(registrationIdV) - 38, false);
+    uuidGenerate(registrationIdV, sizeof(registrationIdV), "urn:ngsi-ld:ContextSourceRegistration:");
     regIdP = kjString(orionldState.kjsonP, "id", registrationId);
   }
   else

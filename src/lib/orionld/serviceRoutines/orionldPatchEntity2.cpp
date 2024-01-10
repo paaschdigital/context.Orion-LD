@@ -37,10 +37,7 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "common/globals.h"                                      // parse8601Time
-#include "rest/httpHeaderAdd.h"                                  // httpHeaderLinkAdd
-#include "orionld/mongoc/mongocEntityUpdate.h"                   // mongocEntityUpdate
-#include "orionld/mongoc/mongocEntityLookup.h"                   // mongocEntityLookup
+#include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/dotForEq.h"                             // dotForEq
@@ -54,6 +51,8 @@ extern "C"
 #include "orionld/kjTree/kjStringValueLookupInArray.h"           // kjStringValueLookupInArray
 #include "orionld/kjTree/kjChildCount.h"                         // kjChildCount
 #include "orionld/kjTree/kjSort.h"                               // kjStringArraySort
+#include "orionld/mongoc/mongocEntityUpdate.h"                   // mongocEntityUpdate
+#include "orionld/mongoc/mongocEntityLookup.h"                   // mongocEntityLookup
 #include "orionld/payloadCheck/pCheckAttributeTransform.h"       // pCheckAttributeTransform
 #include "orionld/payloadCheck/pCheckAttribute.h"                // pCheckAttribute
 #include "orionld/payloadCheck/pCheckEntity.h"                   // pCheckEntity
@@ -61,13 +60,12 @@ extern "C"
 #include "orionld/context/orionldAttributeExpand.h"              // orionldAttributeExpand
 #include "orionld/dbModel/dbModelFromApiEntity.h"                // dbModelFromApiEntity
 #include "orionld/dbModel/dbModelToApiAttribute.h"               // dbModelToApiAttribute
-#include "orionld/forwarding/DistOp.h"                           // DistOp
-#include "orionld/forwarding/regMatchForEntityCreation.h"        // regMatchForEntityCreation
-#include "orionld/forwarding/distOpRequests.h"                   // distOpRequests
-#include "orionld/forwarding/distOpResponses.h"                  // distOpResponses
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
-#include "orionld/forwarding/distOpSuccess.h"                    // distOpSuccess
-#include "orionld/forwarding/distOpFailure.h"                    // distOpFailure
+#include "orionld/regMatch/regMatchForEntityCreation.h"          // regMatchForEntityCreation
+#include "orionld/distOp/distOpRequests.h"                       // distOpRequests
+#include "orionld/distOp/distOpResponses.h"                      // distOpResponses
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
+#include "orionld/distOp/distOpSuccess.h"                        // distOpSuccess
+#include "orionld/distOp/distOpFailure.h"                        // distOpFailure
 #include "orionld/notifications/orionldAlterations.h"            // orionldAlterations
 #include "orionld/notifications/previousValues.h"                // previousValues
 #include "orionld/serviceRoutines/orionldPatchEntity2.h"         // Own Interface
@@ -605,7 +603,7 @@ bool orionldPatchEntity2(void)
     {
       char body[1024];
       kjFastRender(distOpP->requestBody, body);
-      LM_T(LmtDistOpMsgs, ("Registration '%s': %s", distOpP->regP->regId, body));
+      LM_T(LmtSR, ("Registration '%s': %s", distOpP->regP->regId, body));
     }
 #endif
   }
@@ -729,7 +727,7 @@ bool orionldPatchEntity2(void)
     local.requestBody = requestForLocal;
 
     if (dbUpdateResult == true)
-      distOpSuccess(responseBody, &local, NULL);
+      distOpSuccess(responseBody, &local, entityId, NULL);
   }
 
   responseFix(responseBody, DoMergeEntity, 204, entityId);

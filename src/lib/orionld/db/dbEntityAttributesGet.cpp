@@ -61,8 +61,7 @@ static KjNode* getEntityAttributesResponse(KjNode* sortedArrayP)
 {
   char entityAttributesId[128];
 
-  strncpy(entityAttributesId, "urn:ngsi-ld:AttributeList:", sizeof(entityAttributesId) - 1);
-  uuidGenerate(&entityAttributesId[26], sizeof(entityAttributesId) - 26, false);
+  uuidGenerate(entityAttributesId, sizeof(entityAttributesId), "urn:ngsi-ld:AttributeList:");
 
   KjNode* attributeNodeResponseP = kjObject(orionldState.kjsonP, NULL);
   KjNode* idNodeP                = kjString(orionldState.kjsonP, "id", entityAttributesId);
@@ -347,7 +346,7 @@ static KjNode* attributeCreate(KjNode* attrV, KjNode* aP, char* entityType)
   KjNode*       typeNamesP       = kjArray(orionldState.kjsonP,   "typeNames");
   char*         attrShortName    = orionldContextItemAliasLookup(orionldState.contextP, attrLongName, NULL, NULL);
 
-  if (orionldState.out.contentType == JSONLD)
+  if (orionldState.out.contentType == MT_JSONLD)
   {
     KjNode* contextNode = kjString(orionldState.kjsonP, "@context", orionldState.contextP->url);
     kjChildAdd(entityAttrP, contextNode);

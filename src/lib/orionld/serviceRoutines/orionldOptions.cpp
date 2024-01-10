@@ -27,8 +27,8 @@
 #include "orionld/common/orionldState.h"                       // orionldState
 #include "orionld/common/orionldError.h"                       // orionldError
 #include "orionld/types/OrionldHeader.h"                       // orionldHeaderAdd
-#include "orionld/rest/orionldServiceLookup.h"                 // orionldServiceLookup
-#include "orionld/rest/orionldServiceInit.h"                   // orionldRestServiceV
+#include "orionld/service/orionldServiceLookup.h"              // orionldServiceLookup
+#include "orionld/service/orionldServiceInit.h"                // orionldRestServiceV
 #include "orionld/serviceRoutines/orionldPatchEntity2.h"       // orionldPatchEntity2
 #include "orionld/serviceRoutines/orionldPutEntity.h"          // orionldPutEntity
 #include "orionld/serviceRoutines/orionldOptions.h"            // Own interface
@@ -49,9 +49,9 @@ static char* orionldAllowedVerbs(char* verbList, int len, char* serviceUrlPath, 
   // There are nine verbs/methods, but only GET, POST, PATCH and DELETE are supported by ORIONLD
   // This loop looks up the URL PATH for each "orionld-valid" verb and keeps a bitmask of the hits
   //
-  for (uint16_t verbNo = 0; verbNo <= OPTIONS; verbNo++)  // 0:GET, 1:PUT, 2:POST, 3:DELETE, 4:PATCH, 5:HEAD, 6:OPTIONS
+  for (uint16_t verbNo = 0; verbNo <= HTTP_OPTIONS; verbNo++)  // 0:GET, 1:PUT, 2:POST, 3:DELETE, 4:PATCH, 5:HEAD, 6:OPTIONS
   {
-    if (verbNo == HEAD) continue;
+    if (verbNo == HTTP_HEAD) continue;
 
     OrionLdRestService* serviceP;
 
@@ -69,7 +69,7 @@ static char* orionldAllowedVerbs(char* verbList, int len, char* serviceUrlPath, 
         continue;
 
       bitmask |= (1 << verbNo);
-      if (verbNo == PATCH)
+      if (verbNo == HTTP_PATCH)
       {
         *patchAllowedP = true;
         if (serviceP->serviceRoutine == orionldPatchEntity2)
@@ -82,12 +82,12 @@ static char* orionldAllowedVerbs(char* verbList, int len, char* serviceUrlPath, 
 
   if (bitmask > 0)
   {
-    if (bitmask & (1 << GET))      strcat(verbList, ",GET");
-    if (bitmask & (1 << PUT))      strcat(verbList, ",PUT");
-    if (bitmask & (1 << POST))     strcat(verbList, ",POST");
-    if (bitmask & (1 << DELETE))   strcat(verbList, ",DELETE");
-    if (bitmask & (1 << PATCH))    strcat(verbList, ",PATCH");
-    if (bitmask & (1 << OPTIONS))  strcat(verbList, ",OPTIONS");
+    if (bitmask & (1 << HTTP_GET))      strcat(verbList, ",GET");
+    if (bitmask & (1 << HTTP_PUT))      strcat(verbList, ",PUT");
+    if (bitmask & (1 << HTTP_POST))     strcat(verbList, ",POST");
+    if (bitmask & (1 << HTTP_DELETE))   strcat(verbList, ",DELETE");
+    if (bitmask & (1 << HTTP_PATCH))    strcat(verbList, ",PATCH");
+    if (bitmask & (1 << HTTP_OPTIONS))  strcat(verbList, ",OPTIONS");
 
     verbList = &verbList[1];  // Skipping first comma
   }

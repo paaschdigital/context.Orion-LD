@@ -30,11 +30,9 @@
 
 #include "orionld/types/OrionldTenant.h"                         // OrionldTenant
 
-#include "common/string.h"                                       // stringSplit
 #include "common/statistics.h"                                   // TIME_STAT_MONGO_READ_WAIT_START, ...
 #include "rest/OrionError.h"                                     // OrionError
 #include "apiTypesV2/Registration.h"                             // ngsiv2::Registration
-#include "rest/uriParamNames.h"                                  // URI_PARAM_PAGINATION_OFFSET, ...
 #include "mongoBackend/MongoGlobal.h"                            // getMongoConnection
 #include "mongoBackend/safeMongo.h"                              // moreSafe
 #include "mongoBackend/connectionOperations.h"                   // collectionRangedQuery
@@ -249,7 +247,7 @@ bool mongoLdRegistrationsGet
       LM_E(("Internal Error (mongoSetLdTimeInterval: %s: %s)", title, detail));
       releaseMongoConnection(connection);
       reqSemGive(__FUNCTION__, "Mongo Get Registration", reqSemTaken);
-      orionldState.httpStatusCode = SccReceiverInternalError;
+      orionldState.httpStatusCode = 500;
       return false;
     }
 
@@ -258,7 +256,7 @@ bool mongoLdRegistrationsGet
       LM_E(("Internal Error (mongoSetLdTimeInterval: %s: %s)", title, detail));
       releaseMongoConnection(connection);
       reqSemGive(__FUNCTION__, "Mongo Get Registration", reqSemTaken);
-      orionldState.httpStatusCode = SccReceiverInternalError;
+      orionldState.httpStatusCode = 500;
       return false;
     }
 
@@ -267,7 +265,7 @@ bool mongoLdRegistrationsGet
       LM_E(("Internal Error (mongoSetLdTimeInterval: %s: %s)", title, detail));
       releaseMongoConnection(connection);
       reqSemGive(__FUNCTION__, "Mongo Get Registration", reqSemTaken);
-      orionldState.httpStatusCode = SccReceiverInternalError;
+      orionldState.httpStatusCode = 500;
       return false;
     }
 
@@ -276,7 +274,7 @@ bool mongoLdRegistrationsGet
       LM_E(("Internal Error (mongoSetLdProperties: %s: %s)", title, detail));
       releaseMongoConnection(connection);
       reqSemGive(__FUNCTION__, "Mongo Get Registration", reqSemTaken);
-      orionldState.httpStatusCode = SccReceiverInternalError;
+      orionldState.httpStatusCode = 500;
       return false;
     }
 

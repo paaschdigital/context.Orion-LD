@@ -25,9 +25,9 @@
 #include "logMsg/logMsg.h"                                     // LM_*
 #include "logMsg/traceLevels.h"                                // Lmt*
 
+#include "orionld/types/PgConnection.h"                        // PgConnection
 #include "orionld/common/pqHeader.h"                           // Postgres header
 #include "orionld/common/orionldState.h"                       // orionldState
-#include "orionld/troe/PgConnection.h"                         // PgConnection
 #include "orionld/troe/pgConnectionGet.h"                      // pgConnectionGet
 #include "orionld/troe/pgConnectionRelease.h"                  // pgConnectionRelease
 #include "orionld/troe/pgTransactionBegin.h"                   // pgTransactionBegin
@@ -57,6 +57,7 @@ void pgCommands(char* sql[], int commands)
   for (int ix = 0; ix < commands; ix++)
   {
     LM_T(LmtSql, ("SQL: %s;", sql[ix]));
+
     PGresult* res = PQexec(connectionP->connectionP, sql[ix]);
     if (res == NULL)
     {

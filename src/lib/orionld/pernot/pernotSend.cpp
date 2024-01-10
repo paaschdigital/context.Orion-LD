@@ -32,13 +32,13 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
+#include "orionld/types/PernotSubscription.h"                    // PernotSubscription
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/numberToDate.h"                         // numberToDate
 #include "orionld/common/uuidGenerate.h"                         // uuidGenerate
 #include "orionld/common/tenantList.h"                           // tenant0
 #include "orionld/context/orionldCoreContext.h"                  // ORIONLD_CORE_CONTEXT_URL_V1_0
 #include "orionld/notifications/httpNotify.h"                    // httpNotify
-#include "orionld/pernot/PernotSubscription.h"                   // PernotSubscription
 #include "orionld/pernot/pernotSend.h"                           // Own interface
 
 
@@ -68,8 +68,7 @@ static KjNode* notificationTree(PernotSubscription* subP, KjNode* entityArray)
   KjNode*             notificationP = kjObject(orionldState.kjsonP, NULL);
   char                notificationId[80];
 
-  strncpy(notificationId, "urn:ngsi-ld:Notification:", sizeof(notificationId) - 1);  // notificationId, could be a thread variable ...
-  uuidGenerate(&notificationId[25], sizeof(notificationId) - 25, false);
+  uuidGenerate(notificationId, sizeof(notificationId), "urn:ngsi-ld:Notification:");
 
   char date[64];
   numberToDate(subP->lastNotificationTime, date, sizeof(date));
@@ -165,7 +164,7 @@ bool pernotSend(PernotSubscription* subP, KjNode* entityArray)
   int  headerIx      = 7;
   bool addLinkHeader = true;
 
-  if (subP->mimeType == JSONLD)  // If Content-Type is application/ld+json, modify slot 2 of ioVec
+  if (subP->mimeType == MT_JSONLD)  // If Content-Type is application/ld+json, modify slot 2 of ioVec
   {
     ioVec[2].iov_base = (void*) contentTypeHeaderJsonLd;  // REPLACE "application/json" with "application/ld+json"
     ioVec[2].iov_len  = 35;

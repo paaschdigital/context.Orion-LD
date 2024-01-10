@@ -31,11 +31,11 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                     // LM_*
 
+#include "orionld/types/PgTableDefinitions.h"                  // PG_ENTITY_INSERT_START
+#include "orionld/types/PgAppendBuffer.h"                      // PgAppendBuffer
 #include "orionld/common/orionldState.h"                       // orionldState
 #include "orionld/common/uuidGenerate.h"                       // uuidGenerate
 #include "orionld/common/dotForEq.h"                           // dotForEq
-#include "orionld/troe/PgTableDefinitions.h"                   // PG_ENTITY_INSERT_START
-#include "orionld/troe/PgAppendBuffer.h"                       // PgAppendBuffer
 #include "orionld/troe/pgAppendInit.h"                         // pgAppendInit
 #include "orionld/troe/pgAppend.h"                             // pgAppend
 #include "orionld/troe/pgAttributeAppend.h"                    // pgAttributeAppend
@@ -55,7 +55,7 @@ bool troeDeleteAttribute(void)
   char* attributeNameEq;
   char  instanceId[80];
 
-  uuidGenerate(instanceId, sizeof(instanceId), true);
+  uuidGenerate(instanceId, sizeof(instanceId), "urn:ngsi-ld:attribute:instance:");
 
   attributeNameEq = kaStrdup(&orionldState.kalloc, attributeName);
   dotForEq(attributeNameEq);

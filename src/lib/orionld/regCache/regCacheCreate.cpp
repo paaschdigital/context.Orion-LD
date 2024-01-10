@@ -30,11 +30,11 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
-#include "orionld/common/orionldState.h"                         // orionldState, kjTreeLog
 #include "orionld/types/OrionldTenant.h"                         // OrionldTenant
+#include "orionld/types/RegCache.h"                              // RegCache
+#include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/mongoc/mongocRegistrationsIter.h"              // mongocRegistrationsIter
 #include "orionld/dbModel/dbModelToApiRegistration.h"            // dbModelToApiRegistration
-#include "orionld/regCache/RegCache.h"                           // RegCache
 #include "orionld/regCache/regCacheItemAdd.h"                    // regCacheItemAdd
 #include "orionld/regCache/regCacheItemContextCheck.h"           // regCacheItemContextCheck
 #include "orionld/regCache/regCacheCreate.h"                     // Own interface
@@ -48,16 +48,12 @@ extern void apiModelToCacheRegistration(KjNode* apiRegistrationP);
 //
 int regIterFunc(RegCache* rcP, KjNode* dbRegP)
 {
-  LM_T(LmtRegMatch, ("In regIterFunc"));
-  kjTreeLog(dbRegP, "dbRegP", LmtRegMatch);
-
   // Convert DB Reg to API Reg
   if (dbModelToApiRegistration(dbRegP, true, true) == false)
   {
     LM_E(("dbModelToApiRegistration failed"));
     return 1;
   }
-  kjTreeLog(dbRegP, "apiReg", LmtRegMatch);
 
   // The DB Registration 'dbRegP' is now in API Registration format (after calling dbModelToApiRegistration)
   KjNode* apiRegP = dbRegP;
@@ -76,8 +72,6 @@ int regIterFunc(RegCache* rcP, KjNode* dbRegP)
 
   // Convert API Reg to Cache Reg
   apiModelToCacheRegistration(apiRegP);
-
-  // kjTreeLog(apiRegP, "Cache Reg", LmtRegCache);
 
   // Insert cacheRegP in tenantP->regCache (rcP)
   regCacheItemAdd(rcP, regId, apiRegP, true, fwdContextP);

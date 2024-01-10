@@ -31,6 +31,7 @@ extern "C"
 
 #include "logMsg/logMsg.h"                                       // LM_*
 
+#include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
 #include "orionld/common/responseFix.h"                          // responseFix
@@ -40,16 +41,16 @@ extern "C"
 #include "orionld/payloadCheck/pCheckUri.h"                      // pCheckUri
 #include "orionld/mongoc/mongocEntityGet.h"                      // mongocEntityGet
 #include "orionld/mongoc/mongocAttributeDelete.h"                // mongocAttributeDelete
-#include "orionld/forwarding/DistOp.h"                           // DistOp
-#include "orionld/forwarding/regMatchForEntityGet.h"             // regMatchForEntityGet
-#include "orionld/forwarding/distOpListsMerge.h"                 // distOpListsMerge
-#include "orionld/forwarding/distOpSend.h"                       // distOpSend
-#include "orionld/forwarding/distOpResponses.h"                  // distOpResponses
-#include "orionld/forwarding/distOpFailure.h"                    // distOpFailure
-#include "orionld/forwarding/distOpSuccess.h"                    // distOpSuccess
-#include "orionld/forwarding/distOpLookupByCurlHandle.h"         // distOpLookupByCurlHandle
-#include "orionld/forwarding/distOpListRelease.h"                // distOpListRelease
-#include "orionld/forwarding/xForwardedForCompose.h"             // xForwardedForCompose
+#include "orionld/regMatch/regMatchForEntityGet.h"               // regMatchForEntityGet
+#include "orionld/distOp/distOpListsMerge.h"                     // distOpListsMerge
+#include "orionld/distOp/distOpSend.h"                           // distOpSend
+#include "orionld/distOp/distOpResponses.h"                      // distOpResponses
+#include "orionld/distOp/distOpFailure.h"                        // distOpFailure
+#include "orionld/distOp/distOpSuccess.h"                        // distOpSuccess
+#include "orionld/distOp/distOpLookupByCurlHandle.h"             // distOpLookupByCurlHandle
+#include "orionld/distOp/distOpListRelease.h"                    // distOpListRelease
+#include "orionld/distOp/xForwardedForCompose.h"                 // xForwardedForCompose
+#include "orionld/distOp/viaCompose.h"                           // viaCompose
 #include "orionld/serviceRoutines/orionldDeleteAttribute.h"      // Own interface
 
 
@@ -85,6 +86,7 @@ static DistOp* distributedDelete(KjNode* responseBody, char* entityId, char* ent
   // Enqueue all forwarded requests
   // Now that we've found all matching registrations we can add ourselves to the X-forwarded-For header
   char* xff = xForwardedForCompose(orionldState.in.xForwardedFor, localIpAndPort);
+  char* via = viaCompose(orionldState.in.via, brokerId);
 
   int forwards = 0;
   for (DistOp* distOpP = distOpList; distOpP != NULL; distOpP = distOpP->next)
@@ -95,7 +97,7 @@ static DistOp* distributedDelete(KjNode* responseBody, char* entityId, char* ent
       char dateHeader[70];
       snprintf(dateHeader, sizeof(dateHeader), "Date: %s", orionldState.requestTimeString);
 
-      if (distOpSend(distOpP, dateHeader, xff) == 0)
+      if (distOpSend(distOpP, dateHeader, xff, via, false, NULL) == 0)
       {
         ++forwards;
         distOpP->error = false;
@@ -186,7 +188,7 @@ bool orionldDeleteAttribute(void)
 
 
   //
-  // orionldMhdConnectionTreat() expands the attribute name for us.
+  // mhdConnectionTreat() expands the attribute name for us.
   // Here we save it in the orionldState.wildcard array, so that TRoE won't have to expand it
   //
   orionldState.wildcard[1] = orionldState.in.pathAttrExpanded;
@@ -264,7 +266,7 @@ bool orionldDeleteAttribute(void)
         distOpFailure(responseBody, NULL, "Database Error", "(ToDo: get error from mongoc)", 500, attrName);
     }
     else
-      distOpSuccess(responseBody, NULL, attrName);
+      distOpSuccess(responseBody, NULL, entityId, attrName);
   }
 
   if (distOpList != NULL)

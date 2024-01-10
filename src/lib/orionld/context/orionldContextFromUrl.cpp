@@ -28,9 +28,9 @@
 #include "logMsg/logMsg.h"                                       // LM_*
 #include "logMsg/traceLevels.h"                                  // Lmt*
 
+#include "orionld/types/OrionldContext.h"                        // OrionldContext
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
-#include "orionld/context/OrionldContext.h"                      // OrionldContext
 #include "orionld/context/orionldContextFromBuffer.h"            // orionldContextFromBuffer
 #include "orionld/contextCache/orionldContextCacheLookup.h"      // orionldContextCacheLookup
 #include "orionld/context/orionldContextDownload.h"              // orionldContextDownload
@@ -245,7 +245,7 @@ static OrionldContext* contextCacheWait(char* url)
 //
 OrionldContext* orionldContextFromUrl(char* url, char* id)
 {
-  LM_T(LmtContextDownload, ("Downloading a context URL: '%s'", url));
+  LM_T(LmtContextDownload, ("Possibly downloading a context URL: '%s'", url));
 
   OrionldContext* contextP = orionldContextCacheLookup(url);
 
