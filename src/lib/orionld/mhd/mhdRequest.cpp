@@ -30,7 +30,7 @@ extern "C"
 }
 
 #include "orionld/common/traceLevels.h"                          // Tl*
-#include "orionld/rest/orionldMhdConnectionInit.h"               // mhdRequestInit
+#include "orionld/mhd/mhdConnectionInit.h"                       // mhdRequestInit
 #include "orionld/mhd/mhdRequest.h"                              // Own interface
 
 
@@ -61,7 +61,7 @@ MHD_Result mhdRequest
     KT_T(StRequest, "Incoming request: %s %s, type I (*con_cls == %p)", method, url, *con_cls);
     *con_cls = &cls;  // to "acknowledge" the first call
     
-    // return orionldMhdConnectionInit(connection, url, method, version, con_cls);
+    // return mhdConnectionInit(connection, url, method, version, con_cls);
   }
   else if (*upload_data_size != 0)
   {

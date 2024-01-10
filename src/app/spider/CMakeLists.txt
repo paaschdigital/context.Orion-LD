@@ -34,9 +34,8 @@ SET (COMMON_STATIC_LIBS
 
 SET (ORIONLD_LIBS
     orionld_mhd
-    orionld_rest
     orionld_serviceRoutines
-    orionld_forwarding
+    orionld_service
     orionld_troe
     orionld_kjTree
     orionld_mqtt
