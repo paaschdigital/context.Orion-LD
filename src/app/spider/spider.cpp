@@ -53,6 +53,7 @@ unsigned int   mhdPoolSize;
 unsigned int   mhdMemoryLimit;
 unsigned int   mhdTimeout;
 unsigned int   mhdMaxConnections;
+bool           distributed;
 
 
 
@@ -82,6 +83,8 @@ KArg kargs[] =
   { "--mhdMemoryLimit",   "-mlim", KaUInt,    &mhdMemoryLimit,    KaOpt, _i 64,     _i 0,     _i 1024,  "MHD memory limit (in kb)"                          },
   { "--mhdTimeout",       "-mtmo", KaUInt,    &mhdTimeout,        KaOpt, _i 2000,   _i 0,     KA_NL,    "MHD connection timeout (in milliseconds)"          },
   { "--mhdConnections",   "-mcon", KaUInt,    &mhdMaxConnections, KaOpt, _i 512,    _i 1,     KA_NL,    "Max number of MHD connections"                     },
+
+  { "--distOps",          "-dops", KaBool,    &distributed,       KaOpt, KFALSE,    KA_NL,    KA_NL,    "support for distributed operations"                },
 
   KARGS_END
 };

@@ -27,10 +27,15 @@
 extern "C"
 {
 #include "ktrace/kTrace.h"                                       // KT_*
+#include "kjson/KjNode.h"                                        // KjNode
+#include "kjson/kjBuilder.h"                                     // kjObject, kjString, kjChildAdd, ...
+#include "kjson/kjRender.h"                                      // kjFastRender
 }
 
+#include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/traceLevels.h"                          // Tl*
 #include "orionld/mhd/mhdConnectionInit.h"                       // mhdRequestInit
+#include "orionld/mhd/mhdReply.h"                                // mhdReply
 #include "orionld/mhd/mhdRequest.h"                              // Own interface
 
 
@@ -65,16 +70,29 @@ MHD_Result mhdRequest
   }
   else if (*upload_data_size != 0)
   {
-    KT_T(StRequest, "Incoming request: %s %s, type II (*con_cls == %p)", method, url, *con_cls);
+    KT_T(StRequest, "Incoming request: %s %s, type II - body (*con_cls == %p)", method, url, *con_cls);
     // return mhdConnectionPayloadRead(upload_data_size, upload_data);
   }
   else
   {
-    KT_T(StRequest, "Incoming request: %s %s, type III (*con_cls == %p)", method, url, *con_cls);
+    KT_T(StRequest, "Incoming request: %s %s, type III - last call (*con_cls == %p)", method, url, *con_cls);
+    KT_T(StRequest, "Incoming request: %s %s", method, url);
     *upload_data_size = 0;  // Mark the request as "finished"
     // return mhdConnectionTreat();
+
+    orionldState.responseTree = kjObject(orionldState.kjsonP, NULL);
+    KjNode* nodeP = kjString(orionldState.kjsonP, "status", "ok");
+    kjChildAdd(orionldState.responseTree, nodeP);
+    nodeP = kjString(orionldState.kjsonP, "url", url);
+    kjChildAdd(orionldState.responseTree, nodeP);
+    char buf[1024];
+    kjFastRender(orionldState.responseTree, buf);
+    KT_T(StRequest, "Response: %s", buf);
+    // KT_T(StRequest, "Calling mhdReply");
+    // mhdReply(orionldState.responseTree);
+    // KT_T(StRequest, "After mhdReply");
     MHD_Response*  response;
-    response = MHD_create_response_from_buffer(9, (void*) "All Good\n", MHD_RESPMEM_MUST_COPY);
+    response = MHD_create_response_from_buffer(strlen(buf), buf, MHD_RESPMEM_MUST_COPY);
     MHD_queue_response(connection, 200, response);
     MHD_destroy_response(response);
   }

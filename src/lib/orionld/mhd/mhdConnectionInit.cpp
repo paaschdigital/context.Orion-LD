@@ -1004,7 +1004,7 @@ MHD_Result orionldUriArgumentGet(void* cbDataP, MHD_ValueKind kind, const char* 
 // serviceLookup - lookup the Service
 //
 // mhdConnectionInit guarantees that a valid verb is used. I.e. POST, GET, DELETE or PATCH
-// orionldServiceLookup makes sure the URL supprts the verb
+// orionldServiceLookup makes sure the URL supports the verb
 //
 static OrionLdRestService* serviceLookup(void)
 {

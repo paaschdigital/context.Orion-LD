@@ -40,7 +40,6 @@ SET (ORIONLD_LIBS
     orionld_kjTree
     orionld_mqtt
     orionld_context
-    orionld_common
     orionld_contextCache
     orionld_regCache
     orionld_notifications
@@ -57,6 +56,8 @@ SET (ORIONLD_LIBS
     orionld_payloadCheck
     orionld_q
     orionld_prometheus
+    orionld_common
+    orionld_context
     orionld_types
     lm
 )
