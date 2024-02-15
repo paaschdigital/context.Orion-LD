@@ -216,6 +216,7 @@ static void restServicePrepare(OrionLdRestService* serviceP, OrionLdRestServiceS
   else if (serviceP->serviceRoutine == orionldGetEntities)
   {
     serviceP->uriParams |= ORIONLD_URIPARAM_OPTIONS;
+    serviceP->uriParams |= ORIONLD_URIPARAM_FORMAT;
     serviceP->uriParams |= ORIONLD_URIPARAM_LIMIT;
     serviceP->uriParams |= ORIONLD_URIPARAM_OFFSET;
     serviceP->uriParams |= ORIONLD_URIPARAM_COUNT;
@@ -224,6 +225,7 @@ static void restServicePrepare(OrionLdRestService* serviceP, OrionLdRestServiceS
     serviceP->uriParams |= ORIONLD_URIPARAM_IDPATTERN;
     serviceP->uriParams |= ORIONLD_URIPARAM_ATTRS;
     serviceP->uriParams |= ORIONLD_URIPARAM_Q;
+    serviceP->uriParams |= ORIONLD_URIPARAM_EXPAND_VALUES;
     serviceP->uriParams |= ORIONLD_URIPARAM_CSF;
     serviceP->uriParams |= ORIONLD_URIPARAM_GEOREL;
     serviceP->uriParams |= ORIONLD_URIPARAM_GEOMETRY;
@@ -238,6 +240,7 @@ static void restServicePrepare(OrionLdRestService* serviceP, OrionLdRestServiceS
   else if (serviceP->serviceRoutine == orionldGetEntity)
   {
     serviceP->uriParams |= ORIONLD_URIPARAM_OPTIONS;
+    serviceP->uriParams |= ORIONLD_URIPARAM_FORMAT;
     serviceP->uriParams |= ORIONLD_URIPARAM_ATTRS;
     serviceP->uriParams |= ORIONLD_URIPARAM_GEOMETRYPROPERTY;
     serviceP->uriParams |= ORIONLD_URIPARAM_LANG;

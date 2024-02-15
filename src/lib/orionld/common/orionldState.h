@@ -58,6 +58,7 @@ extern "C"
 #include "orionld/types/Verb.h"                                  // Verb
 #include "orionld/types/OrionldRenderFormat.h"                   // OrionldRenderFormat
 #include "orionld/types/OrionldMimeType.h"                       // MimeType
+#include "orionld/types/QNode.h"                                 // QNode
 #include "orionld/types/ApiVersion.h"                            // ApiVersion
 #include "orionld/common/performance.h"                          // REQUEST_PERFORMANCE
 #include "orionld/kjTree/kjTreeLog.h"                            // Because it is so often used but then removed again ...
@@ -68,7 +69,7 @@ extern "C"
 //
 // ORIONLD_VERSION -
 //
-#define ORIONLD_VERSION "post-v1.5.0"
+#define ORIONLD_VERSION "post-v1.5.1"
 
 
 
@@ -129,6 +130,7 @@ typedef struct OrionldUriParams
   int       limit;
   bool      count;
   char*     q;
+  char*     expandValues;
   char*     qCopy;
   char*     mq;
   char*     geometry;
@@ -166,6 +168,7 @@ typedef struct OrionldUriParams
   bool      local;
   bool      onlyIds;
   bool      entityMap;
+  char*     format;
 
   double    observedAtAsDouble;
   uint64_t  mask;
@@ -262,6 +265,7 @@ typedef struct OrionldStateIn
   StringArray  idList;
   StringArray  typeList;
   StringArray  attrList;
+  StringArray  expandValuesList;
 
   // Entity Map
   EntityMap* entityMap;
@@ -342,6 +346,7 @@ typedef struct OrionldConnectionState
   OrionldContext*         contextP;
   ApiVersion              apiVersion;
   int                     requestNo;
+  QNode*                  qVariable;                   // Aux for qLex - to know whether a string should be expanded (VocabularyProperty)
 
   KjNode*                 geoAttr[10];                 // Preallocated array of GeoProperties
   KjNode**                geoAttrV;                    // Array of GeoProperty attributes
@@ -634,6 +639,7 @@ extern mongoc_collection_t*  mongoRegistrationsCollectionP;  // Deprecated
 extern mongoc_uri_t*          mongocUri;
 extern mongoc_client_pool_t*  mongocPool;
 extern sem_t                  mongocContextsSem;
+extern sem_t                  mongocConnectionSem;
 extern char                   mongocServerVersion[128];
 extern char                   postgresServerVersion[128];
 

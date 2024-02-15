@@ -391,12 +391,28 @@ static void requestCompleted
 
 
   //
-  // Release the connection to mongo - after all notifications have been sent (orionldAlterationsTreat takes care of that)
+  // Release the connections to mongo - after all notifications have been sent (orionldAlterationsTreat takes care of the notifications)
+  // NOTE, this "construct" with NULLing the mongoc_collection_t pointers before actually calling mongoc_collection_destroy is a
+  // desperate attempt to fix the issue #1499.
+  // If still not enough, perhaps a semaphore to protect.
+  // It's weird though, these collection pointers are THREAD VARIABLES !!!
+  // No protection should be needed.
+  // But, desperate times ...
   //
-  if (orionldState.mongoc.contextsP)       mongoc_collection_destroy(orionldState.mongoc.contextsP);
-  if (orionldState.mongoc.entitiesP)       mongoc_collection_destroy(orionldState.mongoc.entitiesP);
-  if (orionldState.mongoc.subscriptionsP)  mongoc_collection_destroy(orionldState.mongoc.subscriptionsP);
-  if (orionldState.mongoc.registrationsP)  mongoc_collection_destroy(orionldState.mongoc.registrationsP);
+  mongoc_collection_t* contextsP      = orionldState.mongoc.contextsP;
+  mongoc_collection_t* entitiesP      = orionldState.mongoc.entitiesP;
+  mongoc_collection_t* subscriptionsP = orionldState.mongoc.subscriptionsP;
+  mongoc_collection_t* registrationsP = orionldState.mongoc.registrationsP;
+
+  orionldState.mongoc.contextsP      = NULL;
+  orionldState.mongoc.entitiesP      = NULL;
+  orionldState.mongoc.subscriptionsP = NULL;
+  orionldState.mongoc.registrationsP = NULL;
+
+  if (contextsP      != NULL)  mongoc_collection_destroy(contextsP);
+  if (entitiesP      != NULL)  mongoc_collection_destroy(entitiesP);
+  if (subscriptionsP != NULL)  mongoc_collection_destroy(subscriptionsP);
+  if (registrationsP != NULL)  mongoc_collection_destroy(registrationsP);
 
   mongocConnectionRelease();
 
@@ -1098,6 +1114,11 @@ ConnectionInfo* connectionTreatInit
   // URI parameters
   //
   MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, orionldUriArgumentGet, ciP);
+
+  extern void optionsParse(const char* options);
+  if (orionldState.uriParams.options != NULL)
+    optionsParse(orionldState.uriParams.options);
+
   if (orionldState.httpStatusCode >= 400)
   {
     LM_W(("Bad Request (error in URI parameters - %s: %s)", orionldState.pd.title, orionldState.pd.detail));
@@ -1380,9 +1401,10 @@ static MHD_Result connectionTreat
     //
     bool keyValuesEtAl = true;
 
-    if      ((orionldState.uriParamOptions.keyValues) && (orionldState.uriParamOptions.values))        keyValuesEtAl = false;
-    else if ((orionldState.uriParamOptions.keyValues) && (orionldState.uriParamOptions.uniqueValues))  keyValuesEtAl = false;
-    else if ((orionldState.uriParamOptions.values)    && (orionldState.uriParamOptions.uniqueValues))  keyValuesEtAl = false;
+    if      ((orionldState.out.format == RF_SIMPLIFIED) && (orionldState.uriParamOptions.values))        keyValuesEtAl = false;
+    else if ((orionldState.out.format == RF_SIMPLIFIED) && (orionldState.uriParamOptions.uniqueValues))  keyValuesEtAl = false;
+    else if ((orionldState.uriParamOptions.values)      && (orionldState.uriParamOptions.uniqueValues))  keyValuesEtAl = false;
+
     if (keyValuesEtAl == false)
     {
       OrionError error(SccBadRequest, "Invalid value for URI param /options/");

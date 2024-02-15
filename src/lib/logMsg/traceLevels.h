@@ -141,6 +141,8 @@ typedef enum TraceLevels
   LmtRegex,                            // Regular expressions - all of them
   LmtDateTime,                         // DateTime (ISO8601) conversion
   LmtMimeType,                         // MimeType
+  LmtArrayReduction,                   // Arrays of only one item are reduced to the item
+  LmtFormat,                           // Normalized, Concise, Simplified
 
   //
   // Legacy

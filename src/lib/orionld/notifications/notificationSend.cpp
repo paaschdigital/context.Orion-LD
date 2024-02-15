@@ -259,8 +259,26 @@ static void attributeFix(KjNode* attrP, CachedSubscription* subP)
   if (addedP   != NULL) kjChildRemove(attrP, addedP);
   if (removedP != NULL) kjChildRemove(attrP, removedP);
 
-  bool asSimplified = false;
 
+  //
+  // If vocab-property, its value needs to be compacted
+  //
+  KjNode* vocabP = kjLookup(attrP, "vocab");
+  if (vocabP != NULL)
+  {
+    if (vocabP->type == KjString)
+      vocabP->value.s = orionldContextItemAliasLookup(subP->contextP, vocabP->value.s, NULL, NULL);
+    else if (vocabP->type == KjArray)
+    {
+      for (KjNode* wordP = vocabP->value.firstChildP; wordP != NULL; wordP = wordP->next)
+      {
+        if (wordP->type == KjString)
+          wordP->value.s = orionldContextItemAliasLookup(subP->contextP, wordP->value.s, NULL, NULL);
+      }
+    }
+  }
+
+  bool asSimplified = false;
   if (attrP->type == KjObject)
   {
     if      (simplified)  attributeToSimplified(attrP, subP->lang.c_str());
@@ -284,6 +302,7 @@ static void attributeFix(KjNode* attrP, CachedSubscription* subP)
       if (strcmp(saP->name, "value")       == 0) continue;
       if (strcmp(saP->name, "object")      == 0) continue;
       if (strcmp(saP->name, "languageMap") == 0) continue;
+      if (strcmp(saP->name, "vocab")       == 0) continue;
       if (strcmp(saP->name, "unitCode")    == 0) continue;
 
       eqForDot(saP->name);
@@ -741,10 +760,10 @@ int notificationSend(OrionldAlterationMatch* mAltP, double timestamp, CURL** cur
   if (headers > 50)
     LM_X(1, ("Too many HTTP headers (>50) for a Notification - to support that many, the broker needs a SW update and to be recompiled"));
 
-  char          hostHeader[256];
+  char          hostHeader[512];
   size_t        hostHeaderLen;
 
-  hostHeaderLen = snprintf(hostHeader, sizeof(hostHeader), "Host: %s\r\n", mAltP->subP->ip);
+  hostHeaderLen = snprintf(hostHeader, sizeof(hostHeader), "Host: %s:%d\r\n", mAltP->subP->ip, mAltP->subP->port);
 
   int           ioVecLen   = headers + 3;  // Request line + X headers + empty line + payload body
   int           headerIx   = 7;

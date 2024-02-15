@@ -435,6 +435,12 @@ double dateTimeFromString(const char* iso8601String, char* errorString, int erro
 {
   char iso8601[64];
 
+  if (iso8601String == NULL)
+    LM_RE(-1, ("NULL ISO8601 String"));
+
+  if (*iso8601String == 0)
+    LM_RE(-1, ("Empty ISO8601 String"));
+
   strncpy(iso8601, iso8601String, sizeof(iso8601) - 1);
 
   char* date = stringStrip(iso8601);
@@ -484,12 +490,12 @@ double dateTimeFromString(const char* iso8601String, char* errorString, int erro
     if (tzStart == NULL) tzStart = strchr(T, '-');
 
     if (tzStart == NULL)
-      strncpy(timeString, T, sizeof(timeString));
+      strncpy(timeString, T, sizeof(timeString) - 1);
     else
     {
-      strncpy(timezoneString, tzStart, sizeof(timezoneString));
+      strncpy(timezoneString, tzStart, sizeof(timezoneString) - 1);
       *tzStart = 0;
-      strncpy(timeString, T, sizeof(timeString));
+      strncpy(timeString, T, sizeof(timeString) - 1);
     }
   }
 
