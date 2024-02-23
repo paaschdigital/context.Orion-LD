@@ -272,6 +272,8 @@ SET (COMMON_STATIC_LIBS
     mongoclient.a
     kjson.a
     khash.a
+    ktrace.a
+    kargs.a
     kalloc.a
     kbase.a
 )
@@ -335,6 +337,8 @@ link_directories("${PROJECT_SOURCE_DIR}/../kjson")
 link_directories("${PROJECT_SOURCE_DIR}/../kalloc")
 link_directories("${PROJECT_SOURCE_DIR}/../kbase")
 link_directories("${PROJECT_SOURCE_DIR}/../khash")
+link_directories("${PROJECT_SOURCE_DIR}/../ktrace")
+link_directories("${PROJECT_SOURCE_DIR}/../kargs")
 link_directories("${PROJECT_SOURCE_DIR}/../prometheus-client-c/prom/build")
 link_directories("${PROJECT_SOURCE_DIR}/../prometheus-client-c/promhttp/build")
 
@@ -404,6 +408,7 @@ if (error EQUAL 0)
   ADD_SUBDIRECTORY(src/lib/metricsMgr)
   ADD_SUBDIRECTORY(src/lib/logSummary)
   ADD_SUBDIRECTORY(src/app/orionld)
+  ADD_SUBDIRECTORY(test/functionalTest/ftClient)
 else ()
     MESSAGE("cmake: NOT OK")
 endif (error EQUAL 0)
