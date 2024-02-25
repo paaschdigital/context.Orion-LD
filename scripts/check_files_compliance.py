@@ -288,6 +288,8 @@ for root, dirs, files in os.walk(dir):
             is_orionld = True
         elif 'src/app/ssClient/' in filename:
             is_orionld = True
+        elif 'test/functionalTest/ftClient/' in filename:
+            is_orionld = True
         elif 'test/functionalTest/cases/0000_ngsild' in filename:
             is_orionld = True
         elif 'test/functionalTest/cases/0000_troe' in filename:
