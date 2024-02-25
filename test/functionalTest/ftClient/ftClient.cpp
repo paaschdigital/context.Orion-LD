@@ -49,8 +49,8 @@ extern "C"
 #include "common/traceLevels.h"                             // Trace levels for ktrace
 
 // Service Routines
-#include "getDump.h"                                        // getDump
-#include "deleteDump.h"                                     // deleteDump
+#include "ftClient/getDump.h"                               // getDump
+#include "ftClient/deleteDump.h"                            // deleteDump
 
 
 
@@ -175,12 +175,12 @@ FtService serviceV[] =
   { HTTP_DELETE,   "/dump", deleteDump },
   { HTTP_NOVERB,   NULL,    NULL       }
 };
-  
+
 
 
 // -----------------------------------------------------------------------------
 //
-// headerReceive - 
+// headerReceive -
 //
 static MHD_Result headerReceive(void* cbDataP, MHD_ValueKind kind, const char* key, const char* value)
 {
@@ -336,7 +336,7 @@ char* mhdRequestTreat(int* statusCodeP)
   KjNode* dump    = kjObject(NULL, "item");  // No name as part of array
   KjNode* verbP   = kjString(NULL, "verb", verbToString(verb));
   KjNode* path    = kjString(NULL, "url",  urlPath);
-  
+
   kjChildAdd(dump, verbP);
   kjChildAdd(dump, path);
 
@@ -354,7 +354,6 @@ char* mhdRequestTreat(int* statusCodeP)
     kjChildAdd(dump, payloadTree);
   }
 
-  
   kjChildAdd(dumpArray, dump);
 
   *statusCodeP = 200;
@@ -369,10 +368,10 @@ char* mhdRequestTreat(int* statusCodeP)
 //
 void mhdRequestEnded
 (
-   void*                       cls,
-   MHD_Connection*             connection,
-   void**                      con_cls,
-   MHD_RequestTerminationCode  toe
+  void*                       cls,
+  MHD_Connection*             connection,
+  void**                      con_cls,
+  MHD_RequestTerminationCode  toe
 )
 {
   KT_T(StRequest, "Request ended");
@@ -473,12 +472,11 @@ int main(int argC, char* argV[])
     exit(1);
   }
 
-  
   KT_V("kaBuiltinDebug: %d", kaBuiltinDebug);
   KT_V("mhdMaxConnections: %d", mhdMaxConnections);
   KT_V("Serving NGSI-LD requests on port: %d", ldPort);
   KT_D("%s version:                   %s", progName, FTCLIENT_VERSION);
-  
+
   kaInit(klibLogFunction);
 
 
@@ -497,4 +495,4 @@ int main(int argC, char* argV[])
   {
     sleep(1);
   }
-} 
+}

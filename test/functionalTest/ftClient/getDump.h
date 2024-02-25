@@ -1,5 +1,5 @@
-#ifndef GET_DUMP_H
-#define GET_DUMP_H
+#ifndef TEST_FUNCTIONALTEST_FTCLIENT_GETDUMP_H_
+#define TEST_FUNCTIONALTEST_FTCLIENT_GETDUMP_H_
 
 /*
 *
@@ -38,4 +38,4 @@ extern "C"
 //
 extern KjNode* getDump(int* statusCodeP);
 
-#endif
+#endif  // TEST_FUNCTIONALTEST_FTCLIENT_GETDUMP_H_

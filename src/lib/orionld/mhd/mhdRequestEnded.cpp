@@ -39,10 +39,10 @@ extern "C"
 //
 void mhdRequestEnded
 (
-   void*                       cls,
-   MHD_Connection*             connection,
-   void**                      con_cls,
-   MHD_RequestTerminationCode  toe
+  void*                       cls,
+  MHD_Connection*             connection,
+  void**                      con_cls,
+  MHD_RequestTerminationCode  toe
 )
 {
   KT_T(StRequest, "Request ended");

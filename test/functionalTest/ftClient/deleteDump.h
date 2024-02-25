@@ -1,5 +1,5 @@
-#ifndef DELETE_DUMP_H
-#define DELETE_DUMP_H
+#ifndef TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_
+#define TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_
 
 /*
 *
@@ -38,4 +38,4 @@ extern "C"
 //
 extern KjNode* deleteDump(int* statusCodeP);
 
-#endif
+#endif  // TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_

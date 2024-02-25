@@ -81,7 +81,7 @@ bool mhdStart
   int                  serverMode;
   struct sockaddr_in   sad4;
   struct sockaddr_in6  sad6;
-  
+
   mhdMemoryLimit *= 1024;  // kilobytes turned to bytes
 
   //
@@ -103,7 +103,6 @@ bool mhdStart
       KT_X(1, "Fatal Error - inet_pton failed for bind address '0.0.0.0'");
     sad4.sin_family = AF_INET;
     sad4.sin_port   = htons(ldPort);
-
   }
 
   if (ip6 == true)

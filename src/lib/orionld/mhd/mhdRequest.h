@@ -35,14 +35,14 @@
 //
 extern MHD_Result mhdRequest
 (
-   void*            cls,
-   MHD_Connection*  connection,
-   const char*      url,
-   const char*      method,
-   const char*      version,
-   const char*      upload_data,
-   size_t*          upload_data_size,
-   void**           con_cls
+  void*            cls,
+  MHD_Connection*  connection,
+  const char*      url,
+  const char*      method,
+  const char*      version,
+  const char*      upload_data,
+  size_t*          upload_data_size,
+  void**           con_cls
 );
 
 #endif  // SRC_LIB_ORIONLD_MHD_MHDREQUEST_H_

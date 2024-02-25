@@ -73,6 +73,7 @@ SET (STATIC_LIBS
 # ------------------------------------------------------------
 include_directories("${PROJECT_SOURCE_DIR}/src/app")
 include_directories("${PROJECT_SOURCE_DIR}/src/lib/orionld")
+include_directories("${PROJECT_SOURCE_DIR}/test/functionalTest")
 
 
 # Lib directories

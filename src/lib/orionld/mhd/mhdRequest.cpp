@@ -52,14 +52,14 @@ extern MhdRequestTreat mhdRequestTreatF;
 //
 MHD_Result mhdRequest
 (
-   void*            cls,
-   MHD_Connection*  connection,
-   const char*      url,
-   const char*      method,
-   const char*      version,
-   const char*      upload_data,
-   size_t*          upload_data_size,
-   void**           con_cls
+  void*            cls,
+  MHD_Connection*  connection,
+  const char*      url,
+  const char*      method,
+  const char*      version,
+  const char*      upload_data,
+  size_t*          upload_data_size,
+  void**           con_cls
 )
 {
   ++mhdCalls;
@@ -70,7 +70,7 @@ MHD_Result mhdRequest
   {
     KT_T(StRequest, "Incoming request: %s %s, type I (*con_cls == %p)", method, url, *con_cls);
     *con_cls = &cls;  // to "acknowledge" the first call
-    
+
     return mhdRequestInitF(connection, url, method, version, con_cls);
   }
   else if (*upload_data_size != 0)
