@@ -20,6 +20,8 @@
 
 SET (SOURCES
     ftClient.cpp
+    getDump.cpp
+    deleteDump.cpp
 )
 
 SET (COMMON_STATIC_LIBS

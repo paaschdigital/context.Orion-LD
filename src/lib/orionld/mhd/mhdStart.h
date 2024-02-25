@@ -25,13 +25,34 @@
 *
 * Author: Ken Zangelin
 */
+#include <microhttpd.h>                                          // MHD_Result, MHD_Connection
 
+
+
+// -----------------------------------------------------------------------------
+//
+// MhdRequestInit  - function for type   I of MHD Request callbacks (read headers and URI params)
+// MhdRequestBody  - function for type  II of MHD Request callbacks (read payload body)
+// MhdRequestTreat - function for type III of MHD Request callbacks (all done - treat the request)
+//
+typedef MHD_Result (*MhdRequestInit)(MHD_Connection* connection, const char* url, const char* method, const char* version, void** con_cls);
+typedef MHD_Result (*MhdRequestBody)(size_t* upload_data_size, const char* upload_data);
+typedef char*      (*MhdRequestTreat)(int* statusCodeP);
+typedef void       (*MhdRequestEnd)(void* cls, MHD_Connection* connection, void** con_cls, MHD_RequestTerminationCode toe);
 
 
 // -----------------------------------------------------------------------------
 //
 // mhdStart -
 //
-extern bool mhdStart(unsigned short ldPort, int ipVersion);
+extern bool mhdStart
+(
+  unsigned short   ldPort,
+  int              ipVersion,
+  MhdRequestInit   initF,
+  MhdRequestBody   bodyF,
+  MhdRequestTreat  treatF,
+  MhdRequestEnd    endF
+);
 
 #endif  // SRC_LIB_ORIONLD_MHD_MHDSTART_H_

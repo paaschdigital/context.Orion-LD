@@ -49,14 +49,30 @@ extern unsigned int   mhdMemoryLimit;
 extern unsigned int   mhdTimeout;
 extern unsigned int   mhdMaxConnections;
 
+MhdRequestInit  mhdRequestInitF  = NULL;
+MhdRequestBody  mhdRequestBodyF  = NULL;
+MhdRequestTreat mhdRequestTreatF = NULL;
+
 
 
 // -----------------------------------------------------------------------------
 //
 // mhdStart -
 //
-bool mhdStart(unsigned short ldPort, int ipVersion)
+bool mhdStart
+(
+  unsigned short   ldPort,
+  int              ipVersion,
+  MhdRequestInit   initF,
+  MhdRequestBody   bodyF,
+  MhdRequestTreat  treatF,
+  MhdRequestEnd    endF
+)
 {
+  mhdRequestInitF  = initF;   // Default to be mhdConnectionInit
+  mhdRequestBodyF  = bodyF;   // Default to be mhdConnectionPayloadRead
+  mhdRequestTreatF = treatF;  // Default to be mhdConnectionTreat
+
   MHD_Daemon*          mhdDaemon = NULL;
   bool                 https     = (httpsKey != NULL) && (httpsCertificate != NULL);
   bool                 ip4       = (ipVersion == 4 || ipVersion == 10);
@@ -117,7 +133,7 @@ bool mhdStart(unsigned short ldPort, int ipVersion)
                                    NULL,
                                    NULL,
                                    mhdRequest,                          NULL,
-                                   MHD_OPTION_NOTIFY_COMPLETED,         mhdRequestEnded, NULL,
+                                   MHD_OPTION_NOTIFY_COMPLETED,         endF, NULL,
                                    MHD_OPTION_CONNECTION_TIMEOUT,       mhdTimeout,
                                    MHD_OPTION_SOCK_ADDR,                (struct sockaddr*) &sad4,
                                    MHD_OPTION_THREAD_POOL_SIZE,         mhdPoolSize,
@@ -133,7 +149,7 @@ bool mhdStart(unsigned short ldPort, int ipVersion)
                                    NULL,
                                    NULL,
                                    mhdRequest,                          NULL,
-                                   MHD_OPTION_NOTIFY_COMPLETED,         mhdRequestEnded, NULL,
+                                   MHD_OPTION_NOTIFY_COMPLETED,         endF, NULL,
                                    MHD_OPTION_CONNECTION_TIMEOUT,       mhdTimeout,
                                    MHD_OPTION_SOCK_ADDR,                (struct sockaddr*) &sad4,
                                    MHD_OPTION_THREAD_POOL_SIZE,         mhdPoolSize,
@@ -156,7 +172,7 @@ bool mhdStart(unsigned short ldPort, int ipVersion)
                                    NULL,
                                    NULL,
                                    mhdRequest,                          NULL,
-                                   MHD_OPTION_NOTIFY_COMPLETED,         mhdRequestEnded, NULL,
+                                   MHD_OPTION_NOTIFY_COMPLETED,         endF, NULL,
                                    MHD_OPTION_CONNECTION_TIMEOUT,       mhdTimeout,
                                    MHD_OPTION_SOCK_ADDR,                (struct sockaddr*) &sad6,
                                    MHD_OPTION_THREAD_POOL_SIZE,         mhdPoolSize,
@@ -172,7 +188,7 @@ bool mhdStart(unsigned short ldPort, int ipVersion)
                                    NULL,
                                    NULL,
                                    mhdRequest,                          NULL,
-                                   MHD_OPTION_NOTIFY_COMPLETED,         mhdRequestEnded, NULL,
+                                   MHD_OPTION_NOTIFY_COMPLETED,         endF, NULL,
                                    MHD_OPTION_CONNECTION_TIMEOUT,       mhdTimeout,
                                    MHD_OPTION_SOCK_ADDR,                (struct sockaddr*) &sad6,
                                    MHD_OPTION_THREAD_POOL_SIZE,         mhdPoolSize,
