@@ -46,3 +46,20 @@ cd ${ROOT_FOLDER}/kjson
 git checkout release/0.8.2
 make
 make install
+
+#
+# kargs
+#
+cd ${ROOT_FOLDER}/kargs
+git checkout release/0.1
+make
+make install
+
+
+#
+# ktrace
+#
+cd ${ROOT_FOLDER}/ktrace
+git checkout release/0.1
+make
+make install
