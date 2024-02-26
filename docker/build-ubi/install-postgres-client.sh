@@ -43,7 +43,8 @@ echo "-------------------------- Install libs --------------------------"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
 
 echo "-------------------------- Install PERL-IPC --------------------------"
-yum -y --nogpgcheck install https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/perl-IPC-Run-0.99-1.el8.noarch.rpm
+yum -y --nogpgcheck install postgresql-plperl-12
+
 
 echo "-------------------------- CMP --------------------------"
 which cmp
