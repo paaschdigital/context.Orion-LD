@@ -9,7 +9,7 @@ COPY ./docker/ubi.repo /etc/yum.repos.d/ubi.repo
 RUN yum install -y yum-utils
 
 RUN yum-config-manager --nogpgcheck --disable pgdg10
-RUN yum-config-manager --nogpgcheck --disable pgdg11
+#RUN yum-config-manager --nogpgcheck --disable pgdg11
 RUN rm /var/cache/dnf/*
 
 RUN mkdir /tmp/build
