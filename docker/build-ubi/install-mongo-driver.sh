@@ -23,8 +23,7 @@
 set -e
 
 #yum -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
-yum -y install dnf
-dnf install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
+dnf -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
 
 yum -y boost-devel scons
 
