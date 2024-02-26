@@ -49,6 +49,5 @@ echo "CMP"
 which cmp
 find / -name cmp
 
-
-echo "Install  postgres12"
+echo "Install  postgres"
 yum -y --nogpgcheck --nobest --skip-broken install libpqxx-devel postgresql12-devel postgresql12-libs
