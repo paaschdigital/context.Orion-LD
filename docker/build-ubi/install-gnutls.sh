@@ -38,6 +38,7 @@ yum -y install https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Pac
 
 yum -y install https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/getPackage/gnutls-3.6.16-6.el8_7.x86_64.rpm
 yum -y install https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/gnutls-c++-3.6.16-6.el8_7.x86_64.rpm
+yum -y install https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/gnutls-devel-3.6.16-6.el8_7.x86_64.rpm
 
 
 # yum -y install https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/gnutls-devel-3.6.16-6.el8_7.x86_64.rpm
