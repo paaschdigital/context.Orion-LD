@@ -42,7 +42,12 @@ yum -y --nogpgcheck install https://archives.fedoraproject.org/pub/archive/epel/
 echo "Install libs"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
 
-echo "Install  postgres"
-dnf install epel-release -y
-dnf --enablerepo=powertools install perl-IPC-Run -y
+echo "Install PERL-IPC"
+yum -y --nogpgcheck https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/perl-IPC-Run-0.99-1.el8.noarch.rpm
+
+echo "CMP"
+which cmp
+find / -name cmp
+
+echo "Install  postgres12"
 yum -y --nogpgcheck --nobest --skip-broken install libpqxx-devel postgresql12-devel postgresql12-libs

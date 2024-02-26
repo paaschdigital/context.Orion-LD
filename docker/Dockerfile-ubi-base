@@ -6,11 +6,6 @@ ENV PAHO_VERSION='v1.3.1'
 COPY ./docker/subscription-manager.conf /etc/yum/pluginconf.d/subscription-manager.conf
 COPY ./docker/ubi.repo /etc/yum.repos.d/ubi.repo
 
-# RUN yum install -y yum-utils
-# RUN yum-config-manager --nogpgcheck --disable pgdg10
-# RUN yum-config-manager --nogpgcheck --disable pgdg11
-# RUN rm /var/cache/dnf/*
-
 RUN mkdir /tmp/build
 
 COPY ./docker/build-ubi/install-build-dependencies.sh /tmp/build/install-build-dependencies.sh
