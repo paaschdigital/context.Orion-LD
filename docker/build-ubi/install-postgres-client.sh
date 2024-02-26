@@ -43,7 +43,7 @@ echo "-------------------------- Install libs --------------------------"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
 
 echo "-------------------------- Install PERL-IPC --------------------------"
-yum -y --nogpgcheck install postgresql-plperl-12
+yum -y --nogpgcheck install postgresql12-plperl
 
 
 echo "-------------------------- CMP --------------------------"
