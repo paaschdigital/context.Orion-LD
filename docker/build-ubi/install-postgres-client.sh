@@ -21,10 +21,10 @@
 # iot_support at tid dot es
 set -e
 
-echo "Yum utils"
+echo "-------------------------- Yum utils --------------------------"
 yum -y --nogpgcheck install yum-utils
 
-echo "Add repo rpms"
+echo "-------------------------- Add repo RPMs --------------------------"
 yum -y --nogpgcheck install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 yum -y --nogpgcheck install postgresql12 postgresql12-contrib
@@ -39,15 +39,16 @@ yum -y --nogpgcheck install https://archives.fedoraproject.org/pub/archive/epel/
 # echo "Add repos"
 # yum update -y --nogpgcheck
 
-echo "Install libs"
+echo "-------------------------- Install libs --------------------------"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
 
-echo "Install PERL-IPC"
-yum -y --nogpgcheck https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/perl-IPC-Run-0.99-1.el8.noarch.rpm
+echo "-------------------------- Install PERL-IPC --------------------------"
+yum -y --nogpgcheck install https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/perl-IPC-Run-0.99-1.el8.noarch.rpm
 
-echo "CMP"
+echo "-------------------------- CMP --------------------------"
 which cmp
 find / -name cmp
 
-echo "Install  postgres"
+echo "-------------------------- Install  postgres --------------------------"
 yum -y --nogpgcheck --nobest --skip-broken install libpqxx-devel postgresql12-devel postgresql12-libs
+echo "-------------------------- DONE --------------------------"
