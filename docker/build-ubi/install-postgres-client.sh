@@ -43,4 +43,6 @@ echo "Install libs"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
 
 echo "Install  postgres"
-yum -y --nogpgcheck install libpqxx-devel postgresql12-devel postgresql12-libs
+dnf install epel-release -y
+dnf --enablerepo=powertools install perl-IPC-Run -y
+yum -y --nogpgcheck --nobest --skip-broken install libpqxx-devel postgresql12-devel postgresql12-libs
