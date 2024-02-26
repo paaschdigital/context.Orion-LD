@@ -22,10 +22,10 @@
 
 set -e
 
-#yum -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
-#dnf -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
+# dnf -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
+# yum -y install https://rpm.pbone.net/info_idpl_80709566_distro_centosother_com_boost-devel-1.66.0-13.el8.x86_64.rpm
 
-yum -y install https://rpm.pbone.net/info_idpl_80709566_distro_centosother_com_boost-devel-1.66.0-13.el8.x86_64.rpm
+yum -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
 yum -y install scons
 
 echo -e "\e[1;32m Builder: installing mongo cxx driver \e[0m"

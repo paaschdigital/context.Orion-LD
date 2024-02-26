@@ -29,9 +29,8 @@ OPS_DEPS_CORE=(
   'ca-certificates' \
 )
 
-#yum install -y http://repo.okay.com.mx/centos/7/x86_64/release/okay-release-1-5.noarch.rpm
-#yum install -y boost-devel
-yum -y install https://rpm.pbone.net/info_idpl_80709566_distro_centosother_com_boost-devel-1.66.0-13.el8.x86_64.rpm
+yum install -y http://repo.okay.com.mx/centos/7/x86_64/release/okay-release-1-5.noarch.rpm
+yum install -y boost-devel
 
 
 yum install -y ${TO_INSTALL[@]}
