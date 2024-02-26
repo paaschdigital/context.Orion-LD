@@ -22,7 +22,7 @@
 
 set -e
 yum makecache --refresh
-yum -y install gmp gnutls gnutls-utils
+yum -y install gmp gnutls
 
 #
 # gnutls-devel is not available in the ubi-repos, need to find it elsewhere
