@@ -36,8 +36,8 @@ yum -y --nogpgcheck install https://rpmfind.net/linux/centos/8-stream/AppStream/
 #yum -y --nogpgcheck install https://rpmfind.net/linux/epel/8/Everything/x86_64/Packages/a/armadillo-10.8.2-1.el8.x86_64.rpm
 yum -y --nogpgcheck install https://archives.fedoraproject.org/pub/archive/epel/8.1/Everything/x86_64/Packages/a/armadillo-9.700.2-1.el8.x86_64.rpm
 
-echo "Add repos"
-yum update -y --nogpgcheck
+# echo "Add repos"
+# yum update -y --nogpgcheck
 
 echo "Install libs"
 yum -y --nogpgcheck install hdf5 xerces-c gdal-libs
