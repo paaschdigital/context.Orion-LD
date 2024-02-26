@@ -25,7 +25,7 @@ set -e
 #yum -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
 dnf -y install http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-5.el8.noarch.rpm
 
-yum -y boost-devel scons
+yum -y install boost-devel scons
 
 echo -e "\e[1;32m Builder: installing mongo cxx driver \e[0m"
 git clone https://github.com/FIWARE-Ops/mongo-cxx-driver ${ROOT_FOLDER}/mongo-cxx-driver
