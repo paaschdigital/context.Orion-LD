@@ -251,6 +251,11 @@ OrionldContext* orionldContextFromUrl(char* url, char* id)
 
   if (contextP != NULL)
   {
+    contextP->usedAt   = orionldState.requestTime;
+
+    contextP->lookups += 1;
+    LM_T(LmtContextCacheStats, ("Context '%s': %d lookups", url, contextP->lookups));
+
     LM_T(LmtContextDownload, ("Found already downloaded URL '%s'", url));
     return contextP;
   }
@@ -330,7 +335,6 @@ OrionldContext* orionldContextFromUrl(char* url, char* id)
   if (contextP != NULL)
   {
     contextP->origin    = OrionldContextDownloaded;
-    contextP->createdAt = orionldState.requestTime;
     contextP->usedAt    = orionldState.requestTime;
 
     orionldContextCachePersist(contextP);

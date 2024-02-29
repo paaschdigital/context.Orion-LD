@@ -852,6 +852,18 @@ MHD_Result orionldUriArgumentGet(void* cbDataP, MHD_ValueKind kind, const char* 
     orionldState.uriParams.subscriptionId  = (char*) value;
     orionldState.uriParams.mask           |= ORIONLD_URIPARAM_SUBSCRIPTION_ID;
   }
+  else if (strcmp(key, "kind") == 0)
+  {
+    orionldState.uriParams.kind = orionldKindFromString(value);
+
+    if (orionldState.uriParams.kind == OrionldContextUnknownKind)
+    {
+      orionldError(OrionldBadRequestData, "Invalid value for uri parameter /kind/", value, 400);
+      return MHD_YES;
+    }
+
+    orionldState.uriParams.mask  |= ORIONLD_URIPARAM_KIND;
+  }
   else if (strcmp(key, "location") == 0)
   {
     if (strcmp(value, "true") == 0)
@@ -895,8 +907,15 @@ MHD_Result orionldUriArgumentGet(void* cbDataP, MHD_ValueKind kind, const char* 
   }
   else if (strcmp(key, "reload") == 0)
   {
-    orionldState.uriParams.reload = true;
     orionldState.uriParams.mask  |= ORIONLD_URIPARAM_RELOAD;
+
+    if (strcmp(value, "true") == 0)
+      orionldState.uriParams.reload = true;
+    else if (strcmp(value, "false") != 0)
+    {
+      orionldError(OrionldBadRequestData, "Invalid value for uri parameter /reload/ (not true nor false)", value, 400);
+      return MHD_YES;
+    }
   }
   else if (strcmp(key, "exist") == 0)
   {
