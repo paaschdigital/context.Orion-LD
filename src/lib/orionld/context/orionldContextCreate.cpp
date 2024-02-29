@@ -39,25 +39,6 @@ extern "C"
 
 // -----------------------------------------------------------------------------
 //
-// orionldOriginFromString - FIXME: move to its own module
-//
-OrionldContextOrigin orionldOriginFromString(const char* s)
-{
-  if      (strcmp(s, "UnknownOrigin")    == 0) return OrionldContextUnknownOrigin;
-  else if (strcmp(s, "Inline")           == 0) return OrionldContextFromInline;
-  else if (strcmp(s, "Downloaded")       == 0) return OrionldContextDownloaded;
-  else if (strcmp(s, "FileCached")       == 0) return OrionldContextFileCached;
-  else if (strcmp(s, "ForNotifications") == 0) return OrionldContextForNotifications;
-  else if (strcmp(s, "ForForwarding")    == 0) return OrionldContextForForwarding;
-  else if (strcmp(s, "UserCreated")      == 0) return OrionldContextUserCreated;
-
-  return OrionldContextUnknownOrigin;
-}
-
-
-
-// -----------------------------------------------------------------------------
-//
 // orionldContextCreate -
 //
 // FIXME: If the context is to be saved in the cache, then 'kalloc' can't be used.
@@ -72,7 +53,10 @@ OrionldContext* orionldContextCreate(const char* url, OrionldContextOrigin origi
     LM_X(1, ("out of memory - trying to allocate a OrionldContext of %d bytes", sizeof(OrionldContext)));
 
   contextP->origin    = origin;
+  contextP->kind      = OrionldContextCached;  // Default. Changed later to Hosted/Implicit if needed
   contextP->parent    = NULL;
+  contextP->createdAt = orionldState.requestTime;
+  contextP->usedAt    = orionldState.requestTime;
 
   // NULL URL means NOT to be saved - will live just inside the request-thread
   if (url != NULL)
@@ -95,7 +79,7 @@ OrionldContext* orionldContextCreate(const char* url, OrionldContextOrigin origi
   }
 
   contextP->keyValues = keyValues;
-  contextP->lookups   = 0;
+  contextP->lookups   = 1;
 
   return contextP;
 }

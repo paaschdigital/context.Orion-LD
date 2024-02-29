@@ -33,6 +33,7 @@ export PGPASSWORD=${PGPASSWORD:-password}
 
 testStartTime=$(date +%s.%2N)
 MAX_TRIES=${CB_MAX_TRIES:-3}
+export CB_CONTEXT_SERVER_DELAY=${CB_CONTEXT_SERVER_DELAY:-3}
 
 
 
@@ -201,14 +202,15 @@ function usage()
   echo "* If a file is passed as parameter, its entire file-name must be given, including '.test'"
   echo ""
   echo "Env Vars:"
-  echo "CB_TRACELEVELS:      the trace-level string, as used with -t for the broker"
-  echo "CB_MAX_TRIES:        the number of tries before giving up on a failing test case"
-  echo "CB_SKIP_LIST:        default value for option --skipList"
-  echo "CB_SKIP_FUNC_TESTS:  comma-separated list of names of func tests to skip"
-  echo "CB_NO_CACHE:         Start the broker without subscription cache (if set to 'ON')"
-  echo "CB_THREADPOOL:       Start the broker without thread pool (if set to 'OFF')"
-  echo "CB_DIFF_TOOL:        To view diff of failing tests with diff/tkdiff/meld/..."
-  echo "CB_EXTERNAL_BROKER:  The broker is started externally - not 'automatically' by the test harness (if set to 'ON')"
+  echo "CB_TRACELEVELS:          the trace-level string, as used with -t for the broker"
+  echo "CB_MAX_TRIES:            the number of tries before giving up on a failing test case"
+  echo "CB_SKIP_LIST:            default value for option --skipList"
+  echo "CB_SKIP_FUNC_TESTS:      comma-separated list of names of func tests to skip"
+  echo "CB_NO_CACHE:             Start the broker without subscription cache (if set to 'ON')"
+  echo "CB_THREADPOOL:           Start the broker without thread pool (if set to 'OFF')"
+  echo "CB_DIFF_TOOL:            To view diff of failing tests with diff/tkdiff/meld/..."
+  echo "CB_EXTERNAL_BROKER:      The broker is started externally - not 'automatically' by the test harness (if set to 'ON')"
+  echo "CB_CONTEXT_SERVER_DELAY: Delay to wait context server to be ready"
   echo
   exit $1
 }
@@ -320,10 +322,10 @@ function exitFunction()
           echo
           echo "Error $exitCode: $errorText"
           echo
-          echo "$stderrFile:"
-          echo "-------------------------------------------------"
+          echo "stderrFile: $stderrFile:"
+          echo "================================================="
           cat $stderrFile
-          echo "-------------------------------------------------"
+          echo "================================================="
           echo
           echo
 
@@ -699,7 +701,7 @@ then
         echo "The Context Server isn't running. Starting it ..."
         docker run --rm -d --name context-server -p 7080:8080 -e MEMORY_ENABLED=true wistefan/context-server
         echo "... Context Server Started"
-        sleep 3  # Very slow - it doesn't work without this delay
+        sleep $CB_CONTEXT_SERVER_DELAY  # Very slow - it doesn't work without this delay
     else
         pushContexts=0                                 # Assuming the @contexts have been pushed already
     fi
@@ -770,7 +772,7 @@ then
   cd $dirOrFile
 elif [ ! -d "$dir" ]
 then
-  exitFunction 1 "$dir is not a directory" "HARNESS" "$dir" "" "" DIE
+  exitFunction 1 "$dir is not a directory" "HARNESS" "$dir" " " " " DIE " "
 else
   cd $dir
 fi
@@ -885,7 +887,7 @@ function fileCreation()
   NAME=$(sed -n '/--NAME--/,/^--/p' $path | grep -v "^--")
   if [ "$NAME" == "" ]
   then
-    exitFunction 2 "--NAME-- part is missing" "$path" "($path)" "" "" DIE
+    exitFunction 2 "--NAME-- part is missing" "$path" "($path)" "diffFile" "stdoutFile" DIE "stderrFile"
     exit 2 # Just in case
   fi
 
@@ -898,7 +900,7 @@ function fileCreation()
     logMsg "Creating $TEST_SHELL_INIT at $PWD"
     sed -n '/--SHELL-INIT--/,/^--/p' $path  | grep -v "^--" > $TEST_SHELL_INIT
   else
-    exitFunction 3 "--SHELL-INIT-- part is missing" $path "($path)" "" "" DIE
+    exitFunction 3 "--SHELL-INIT-- part is missing" $path "($path)" "diffFile" "stdoutFile" DIE "stderrFile"
   fi
 
   #
@@ -910,7 +912,7 @@ function fileCreation()
     logMsg "Creating $TEST_SHELL at $PWD"
     sed -n '/--SHELL--/,/^--/p' $path  | grep -v "^--" > $TEST_SHELL
   else
-    exitFunction 4 "--SHELL-- part is missing" $path "($path)" "" "" DIE
+    exitFunction 4 "--SHELL-- part is missing" $path "($path)" "diffFile" "stdoutFile" DIE "stderrFile"
   fi
 
   #
@@ -922,7 +924,7 @@ function fileCreation()
     logMsg "Creating $TEST_REGEXPECT at $PWD"
     sed -n '/--REGEXPECT--/,/^--/p' $path  | grep -v "^--" > $TEST_REGEXPECT
   else
-    exitFunction 5 "--REGEXPECT-- part is missing" $path "($path)" "" "" DIE
+    exitFunction 5 "--REGEXPECT-- part is missing" $path "($path)" "diffFile" "stdoutFile" DIE "stderrFile"
   fi
 
   #
@@ -934,7 +936,7 @@ function fileCreation()
     logMsg "Creating $TEST_TEARDOWN at $PWD"
     sed -n '/--TEARDOWN--/,/^--/p' $path  | grep -v "^--" > $TEST_TEARDOWN
   else
-    exitFunction 6 "--TEARDOWN-- part is missing" $path "($path)" "" "" DIE
+    exitFunction 6 "--TEARDOWN-- part is missing" $path "($path)" "diffFile" "stdoutFile" DIE "stderrFile"
   fi
 }
 
@@ -994,18 +996,24 @@ function partExecute()
   #
   # Check that stderr is empty
   #
+  logMsg "=============================================="
+  logMsg "wc -l $dirname/$filename.$what.stderr:"
+  wc -l $dirname/$filename.$what.stderr >> $LOG_FILE
+  logMsg "=============================================="
+  
   linesInStderr=$(wc -l $dirname/$filename.$what.stderr | awk '{ print $1}' 2> /dev/null)
   if [ "$linesInStderr" != "" ] && [ "$linesInStderr" != "0" ]
   then
     if [ $__tryNo == $MAX_TRIES ]
     then
-      exitFunction 7 "$what: output on stderr" $path "($path): $what produced output on stderr" $dirname/$filename.$what.stderr $dirname/$filename.$what.stdout "$forcedDie"
+      exitFunction 7 "$what: output on stderr" $path "($path): $what produced output on stderr" "no diff" "$dirname/$filename.$what.stdout" "$forcedDie" "$dirname/$filename.$what.stderr"
     else
       logMsg "$what: output on stderr"
-      logMsg "------------------------------------------------------"
+      logMsg "******************************************************"
       cat $dirname/$filename.$what.stderr >> $LOG_FILE
-      logMsg "------------------------------------------------------"
-      echo -n "(ERROR 7 - $what: output on stderr) "
+      logMsg "******************************************************"
+      echo -n "(lines in stderr: $linesInStderr) "
+      echo "(ERROR 7 - $what: output on stderr) "
     fi
 
     partExecuteResult=7
@@ -1021,7 +1029,7 @@ function partExecute()
     logMsg "$what: exit code is $eCode - retry? (try: $__tryNo, MAX_TRIES: $MAX_TRIES)"
     if [ $__tryNo == $MAX_TRIES ]
     then
-      exitFunction 8 $path "$what exited with code $eCode" "($path)" $dirname/$filename.$what.stderr $dirname/$filename.$what.stdout "$forcedDie"
+      exitFunction 8 "$what exited with code $eCode" "$path" "non-zero exit code" "no diff" "$dirname/$filename.$what.stdout" "$forcedDie" "$dirname/$filename.$what.stderr"
     else
       echo -n "(ERROR 8 - $what: exited with code $eCode) "
     fi
@@ -1073,7 +1081,7 @@ function partExecute()
       logMsg "$what $dirname/$filename: eCode=$eCode"
       if [ $__tryNo == $MAX_TRIES ]
       then
-        exitFunction 9 "output not as expected" $path "($path) output not as expected" $dirname/$filename.diff $dirname/$filename.out "Survive" "$dirname/$filename.$what.stderr"
+        exitFunction 9 "output not as expected" $path "($path) output not as expected" "$dirname/$filename.diff" "$dirname/$filename.out" "Survive" "$dirname/$filename.$what.stderr"
       else
         echo -n "(ERROR 9 - .out and .regexpect differ) "
       fi
@@ -1176,7 +1184,7 @@ function runTest()
   linesInStderr=$(wc -l $dirname/$filename.shellInit.stderr | awk '{ print $1}' 2> /dev/null)
   if [ "$linesInStderr" != "" ] && [ "$linesInStderr" != "0" ]
   then
-    exitFunction 10 "SHELL-INIT produced output on stderr" $path "($path)" $dirname/$filename.shellInit.stderr $dirname/$filename.shellInit.stdout "Continue"
+    exitFunction 10 "SHELL-INIT produced output on stderr" $path "stderr not empty" "$dirname/$filename.shellInit.stdout" "Continue" "$dirname/$filename.shellInit.stderr"
     runTestStatus="shell-init-error"
     return
   fi
@@ -1214,14 +1222,14 @@ function runTest()
 
     if [ "$linesInStderr" != "" ] && [ "$linesInStderr" != "0" ]
     then
-      exitFunction 20 "SHELL-INIT II produced output on stderr" $path "($path)" $dirname/$filename.shellInit.stderr $dirname/$filename.shellInit.stdout "Continue"
+      exitFunction 20 "SHELL-INIT II produced output on stderr" $path "output on stderr" "$dirname/$filename.shellInit.stdout" "Continue" "$dirname/$filename.shellInit.stderr"
       runTestStatus="shell-init-output-on-stderr"
       return
     fi
 
     if [ "$eCode" != "0" ]
     then
-      exitFunction 11 "SHELL-INIT exited with code $eCode" $path "($path)" $dirname/$filename.shellInit.stderr $dirname/$filename.shellInit.stdout "Continue"
+      exitFunction 11 "SHELL-INIT exited with code $eCode" $path "output on stderr" "$dirname/$filename.shellInit.stdout" "Continue" "$dirname/$filename.shellInit.stderr"
       runTestStatus="shell-init-exited-with-"$eCode
       return
     fi

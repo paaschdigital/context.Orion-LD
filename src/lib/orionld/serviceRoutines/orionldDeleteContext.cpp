@@ -32,6 +32,7 @@ extern "C"
 
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/orionldError.h"                         // orionldError
+#include "orionld/context/orionldCoreContext.h"                  // orionldCoreContextP
 #include "orionld/context/orionldContextFromUrl.h"               // orionldContextFromUrl
 #include "orionld/contextCache/orionldContextCache.h"            // Context Cache Internals
 #include "orionld/contextCache/orionldContextCacheLookup.h"      // orionldContextCacheLookup
@@ -56,10 +57,18 @@ bool orionldDeleteContext(void)
     return false;
   }
 
+  if ((oldContextP == orionldCoreContextP) && (orionldState.uriParams.reload == false))
+  {
+    orionldError(OrionldBadRequestData, "The NGSI-LD Core Context cannot be deleted", "The Core Context can be reloaded, please use the URI param '?reload=true' for that", 400);
+    return false;
+  }
 
   if (orionldState.uriParams.reload == true)
   {
-    if (oldContextP->origin != OrionldContextDownloaded)
+    //
+    // Only contexts of type Cached (indirect download) can be reloaded
+    //
+    if (oldContextP->kind != OrionldContextCached)
     {
       orionldError(OrionldBadRequestData, "Wrong type of context", "only cached contexts are subject for reload", 400);
       return false;
@@ -93,6 +102,7 @@ bool orionldDeleteContext(void)
     if (contextP == NULL)
     {
       orionldContextCacheInsert(oldContextP);
+      // orionldError(OrionldLdContextNotAvailable, "Unable to reload the @context", oldContextP->url, 504);
       return false;
     }
 
