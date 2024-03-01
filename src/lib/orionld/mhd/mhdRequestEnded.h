@@ -35,10 +35,10 @@
 //
 extern void mhdRequestEnded
 (
-   void*                       cls,
-   MHD_Connection*             connection,
-   void**                      con_cls,
-   MHD_RequestTerminationCode  toe
+  void*                       cls,
+  MHD_Connection*             connection,
+  void**                      con_cls,
+  MHD_RequestTerminationCode  toe
 );
 
 #endif  // SRC_LIB_ORIONLD_MHD_MHDREQUESTENDED_H_

@@ -1,6 +1,9 @@
+#ifndef TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_
+#define TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_
+
 /*
 *
-* Copyright 2023 FIWARE Foundation e.V.
+* Copyright 2024 FIWARE Foundation e.V.
 *
 * This file is part of Orion-LD Context Broker.
 *
@@ -22,28 +25,17 @@
 *
 * Author: Ken Zangelin
 */
-#include <microhttpd.h>                                          // MHD
-
 extern "C"
 {
-#include "ktrace/kTrace.h"                                       // KT_*
+#include "kjson/KjNode.h"                                   // KjNode
 }
-
-#include "orionld/common/traceLevels.h"                          // Tl*
 
 
 
 // -----------------------------------------------------------------------------
 //
-// mhdRequestEnded -
+// deleteDump -
 //
-void mhdRequestEnded
-(
-  void*                       cls,
-  MHD_Connection*             connection,
-  void**                      con_cls,
-  MHD_RequestTerminationCode  toe
-)
-{
-  KT_T(StRequest, "Request ended");
-}
+extern KjNode* deleteDump(int* statusCodeP);
+
+#endif  // TEST_FUNCTIONALTEST_FTCLIENT_DELETEDUMP_H_

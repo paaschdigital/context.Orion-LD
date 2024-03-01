@@ -203,7 +203,7 @@ def ignore(root, file):
     # Particular cases of files that are also ignored
     files_names = ['.gitignore', '.valgrindrc', '.valgrindSuppressions', 'LICENSE', '.readthedocs.yml',
                    'ContributionPolicy.txt', 'CHANGES_NEXT_RELEASE', 'compileInfo.h',
-                   'unittests_that_fail_sporadically.txt', 'Vagrantfile', 'contextBroker.ubuntu', 'orionld.ubuntu',
+                   'unittests_that_fail_sporadically.txt', 'Vagrantfile', 'contextBroker.ubuntu', 'orionld.ubuntu', 'ftClient.ubuntu',
                    'mkdocs.yml', 'fiware-ngsiv2-reference.errata', 'ServiceRoutines.txt', '.travis.yml',
                    '.dockerignore', '.jmeter.json']
 
@@ -249,6 +249,9 @@ def supported_extension(root, file):
     if 'config' in root and file == 'orionld':
         return True
     
+    if 'config' in root and file == 'ftClient':
+        return True
+
     filename = os.path.join(root, file)
     print('not supported extension: {filename}'.format(filename=filename))
     return False
@@ -287,6 +290,8 @@ for root, dirs, files in os.walk(dir):
         elif 'src/lib/orionld/' in filename:
             is_orionld = True
         elif 'src/app/ssClient/' in filename:
+            is_orionld = True
+        elif 'test/functionalTest/ftClient/' in filename:
             is_orionld = True
         elif 'test/functionalTest/cases/0000_ngsild' in filename:
             is_orionld = True

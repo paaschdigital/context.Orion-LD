@@ -1,6 +1,6 @@
 /*
 *
-* Copyright 2023 FIWARE Foundation e.V.
+* Copyright 2024 FIWARE Foundation e.V.
 *
 * This file is part of Orion-LD Context Broker.
 *
@@ -22,28 +22,33 @@
 *
 * Author: Ken Zangelin
 */
-#include <microhttpd.h>                                          // MHD
-
 extern "C"
 {
-#include "ktrace/kTrace.h"                                       // KT_*
+#include "ktrace/kTrace.h"                                  // trace messages - ktrace library
+#include "kjson/kjFree.h"                                   // kjFree
+#include "kjson/kjBuilder.h"                                // kjArray
 }
 
-#include "orionld/common/traceLevels.h"                          // Tl*
+
+
+// FIXME: put in header file and include
+extern KjNode*  dumpArray;
 
 
 
 // -----------------------------------------------------------------------------
 //
-// mhdRequestEnded -
+// deleteDump -
 //
-void mhdRequestEnded
-(
-  void*                       cls,
-  MHD_Connection*             connection,
-  void**                      con_cls,
-  MHD_RequestTerminationCode  toe
-)
+KjNode* deleteDump(int* statusCodeP)
 {
-  KT_T(StRequest, "Request ended");
+  KT_V("Resetting Dump");
+
+  if (dumpArray != NULL)
+    kjFree(dumpArray);
+
+  dumpArray = kjArray(NULL, "dumpArray");
+
+  *statusCodeP = 204;
+  return NULL;
 }
