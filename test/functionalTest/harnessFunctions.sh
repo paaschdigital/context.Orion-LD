@@ -829,6 +829,55 @@ function brokerStop
 
 # ------------------------------------------------------------------------------
 #
+# ftClientStart -
+#
+function ftClientStart()
+{
+  _port=7701
+  _verbose=""
+
+  while [ "$#" != 0 ]
+  do
+    if   [ "$1" == "--port" ];            then _port=$2; shift;
+    elif [ "$1" == "--verbose" ];         then _verbose="-v";
+    else
+      echo "Bad parameter for ftClientStart: $1"
+      exit 1
+    fi
+    shift
+  done
+
+  ftClient --port $port $_verbose
+}
+
+
+
+# ------------------------------------------------------------------------------
+#
+# ftClientStop -
+#
+function ftClientStop()
+{
+  _port=7701
+
+  while [ "$#" != 0 ]
+  do
+    if   [ "$1" == "--port" ];            then _port=$2; shift;
+    elif [ "$1" == "--verbose" ];         then _verbose="-v";
+    else
+      echo "Bad parameter for ftClientStop: $1"
+      exit 1
+    fi
+    shift
+  done
+
+  curl localhost:$_port/die
+}
+
+
+
+# ------------------------------------------------------------------------------
+#
 # accumulatorStop -
 #
 function accumulatorStop()
@@ -1940,3 +1989,5 @@ export -f cServerStop
 export -f cServerCurl
 export -f urlencode
 export -f orionldMetrics
+export -f ftClientStart
+export -f ftClientStop
