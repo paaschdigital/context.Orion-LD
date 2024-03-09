@@ -485,7 +485,7 @@ int main(int argC, char* argV[])
   // kjsonP = kjBufferCreate(&kjson, &kalloc);
 
   dumpArray = kjArray(NULL, "dumpArray");
-  
+
   KT_V("Serving requests on port %d", ldPort);
   KT_D("%s version:                   %s", progName, FTCLIENT_VERSION);
   if (mhdStart(ldPort, 4, mhdRequestInit, mhdRequestBodyRead, mhdRequestTreat, mhdRequestEnded) == false)
