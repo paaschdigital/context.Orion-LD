@@ -173,7 +173,7 @@ KjNode* getDump(int* statusCodeP)
       kjRender(kjsonP, bodyP, body, bodyLen);
       KT_T(StRequest, "body: '%s'", body);
       strcpy(&buf[bufIx], body);
-      bufIx += lineLen;
+      bufIx += strlen(body);
     }
   }
   buf[bufIx] = 0;
@@ -182,4 +182,3 @@ KjNode* getDump(int* statusCodeP)
 
   return NULL;  // => responseText is used as is
 }
-

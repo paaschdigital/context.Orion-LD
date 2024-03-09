@@ -835,11 +835,14 @@ function ftClientStart()
 {
   _port=7701
   _verbose=""
+  _traceLevels=""
 
   while [ "$#" != 0 ]
   do
     if   [ "$1" == "--port" ];            then _port=$2; shift;
     elif [ "$1" == "--verbose" ];         then _verbose="-v";
+    elif [ "$1" == "-v" ];                then _verbose="-v";
+    elif [ "$1" == "-t" ];                then _traceLevels="-t $2"; shift;
     else
       echo "Bad parameter for ftClientStart: $1"
       exit 1
@@ -847,7 +850,16 @@ function ftClientStart()
     shift
   done
 
-  ftClient --port $port $_verbose
+  # logMsg "Stopping the FT Client on port $_port"
+  # ftClientStop --port $_port
+
+  logMsg "Starting the FT Client on port $_port ($_verbose $_traceLevels)"
+  which ftClient >> $LOG_FILE
+  ftClient --port $_port $_verbose $_traceLevels &
+
+  _port=0
+  _verbose=""
+  _traceLevels=""
 }
 
 
@@ -859,6 +871,7 @@ function ftClientStart()
 function ftClientStop()
 {
   _port=7701
+  _verbose=""
 
   while [ "$#" != 0 ]
   do
@@ -871,7 +884,10 @@ function ftClientStop()
     shift
   done
 
-  curl localhost:$_port/die
+  curl localhost:$_port/die > /dev/null 2> /dev/null
+
+  _port=0
+  _verbose=""
 }
 
 
