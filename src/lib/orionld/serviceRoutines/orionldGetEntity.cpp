@@ -26,6 +26,7 @@
 
 extern "C"
 {
+#include "kbase/kMacros.h"                                       // K_FT
 #include "kjson/KjNode.h"                                        // KjNode
 #include "kjson/kjParse.h"                                       // kjParse
 #include "kjson/kjLookup.h"                                      // kjLookup
@@ -76,10 +77,11 @@ bool orionldGetEntity(void)
   if ((experimental == false) || (orionldState.in.legacy != NULL))                      // If Legacy header - use old implementation
     return legacyGetEntity();
 
-  bool         sysAttrs    = orionldState.uriParamOptions.sysAttrs;
-  char*        lang        = orionldState.uriParams.lang;
-  char*        entityType  = NULL;  // If the entity is found locally, its type will be included as help in the forwarded requests
-  const char*  entityId    = orionldState.wildcard[0];
+  bool         sysAttrs        = orionldState.uriParamOptions.sysAttrs;
+  char*        lang            = orionldState.uriParams.lang;
+  char*        entityType      = NULL;  // If the entity is found locally, its type will be included as help in the forwarded requests
+  const char*  entityId        = orionldState.wildcard[0];
+  int          remoteEntities  = 0;
 
   if (pCheckUri(entityId, "Entity ID in URL PATH", true) == false)
     return false;
@@ -101,7 +103,6 @@ bool orionldGetEntity(void)
 
   KjNode* dbEntityP      = mongocEntityLookup(entityId, entityType, &orionldState.in.attrList, orionldState.uriParams.geometryProperty, NULL);
   KjNode* apiEntityP     = NULL;
-  bool    forcedSysAttrs = false;
 
   if (dbEntityP != NULL)  // Convert from DB to API Entity + GET the entity type
   {
@@ -132,17 +133,11 @@ bool orionldGetEntity(void)
         entityType = entityTypeP->value.s;
     }
 
-    if (orionldState.distributed == true)
-    {
-      forcedSysAttrs = true;
-      //
-      // For forwarded requests, I NEED sysAttrs (to pick attribute in case there's more than one)
-      // And, Normalized is the format for Distributed operations
-      //
-      apiEntityP = dbModelToApiEntity2(dbEntityP, true, RF_NORMALIZED, lang, true, &orionldState.pd);
-    }
-    else
-      apiEntityP = dbModelToApiEntity2(dbEntityP, sysAttrs, orionldState.out.format, lang, true, &orionldState.pd);
+    //
+    // For forwarded requests, I NEED sysAttrs (to pick attribute in case there's more than one)
+    // And, Normalized is the format for Distributed operations
+    //
+    apiEntityP = dbModelToApiEntity2(dbEntityP, true, RF_NORMALIZED, lang, true, &orionldState.pd);
   }
 
   DistOp*  distOpList = NULL;
@@ -252,8 +247,6 @@ bool orionldGetEntity(void)
   //
   // Read the responses to the forwarded requests
   //
-  int fwdMerges = 0;
-
   if (forwards > 0)
   {
     CURLMsg* msgP;
@@ -316,7 +309,7 @@ bool orionldGetEntity(void)
           else
           {
             distOpEntityMerge(apiEntityP, distOpP->responseBody, sysAttrs, distOpP->regP->mode == RegModeAuxiliary);
-            fwdMerges += 1;
+            remoteEntities += 1;
           }
         }
         else
@@ -349,16 +342,29 @@ bool orionldGetEntity(void)
     distOpListRelease(distOpList);
   }
 
-  if ((apiEntityP != NULL) && (forcedSysAttrs == true))
-  {
-    // Transform the apiEntityP according to in case orionldState.out.format, lang, and sysAttrs
+  //
+  // If a tenant is in use, it must be included in the response
+  //
+  if (orionldState.tenantP != &tenant0)
+    orionldHeaderAdd(&orionldState.out.headers, HttpTenant, orionldState.tenantP->tenant, 0);
 
-    if      (orionldState.out.format == RF_SIMPLIFIED) ntosEntity(apiEntityP, lang);
-    else if (orionldState.out.format == RF_CONCISE)    ntocEntity(apiEntityP, lang, sysAttrs);
-    else                                               ntonEntity(apiEntityP, lang, sysAttrs);
+  if (apiEntityP == NULL)
+  {
+    orionldError(OrionldResourceNotFound, "Entity not found", entityId, 404);
+    return false;
   }
 
-  if ((apiEntityP != NULL) && (sysAttrs == false))
+  //
+  // Transform the apiEntityP according to orionldState.out.format, lang, and sysAttrs
+  //
+  kjTreeLog(apiEntityP, "apiEntityP", LmtBug);
+  if      (orionldState.out.format == RF_SIMPLIFIED) ntosEntity(apiEntityP, lang);
+  else if (orionldState.out.format == RF_CONCISE)    ntocEntity(apiEntityP, lang, sysAttrs);
+  else                                               ntonEntity(apiEntityP, lang, sysAttrs);
+
+  kjTreeLog(apiEntityP, "apiEntityP", LmtBug);
+
+  if (sysAttrs == false)
     kjSysAttrsRemove(apiEntityP, 2);
 
   if (orionldState.out.contentType == MT_GEOJSON)
@@ -405,19 +411,8 @@ bool orionldGetEntity(void)
     }
   }
 
-  //
-  // If a tenant is in use, it must be included in the response
-  //
-  if (orionldState.tenantP != &tenant0)
-    orionldHeaderAdd(&orionldState.out.headers, HttpTenant, orionldState.tenantP->tenant, 0);
-
-  if (apiEntityP == NULL)
-  {
-    orionldError(OrionldResourceNotFound, "Entity not found", entityId, 404);
-    return false;
-  }
-
   orionldState.responseTree   = apiEntityP;
   orionldState.httpStatusCode = 200;
+
   return true;
 }
