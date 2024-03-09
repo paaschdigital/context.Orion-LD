@@ -829,6 +829,71 @@ function brokerStop
 
 # ------------------------------------------------------------------------------
 #
+# ftClientStart -
+#
+function ftClientStart()
+{
+  _port=7701
+  _verbose=""
+  _traceLevels=""
+
+  while [ "$#" != 0 ]
+  do
+    if   [ "$1" == "--port" ];            then _port=$2; shift;
+    elif [ "$1" == "--verbose" ];         then _verbose="-v";
+    elif [ "$1" == "-v" ];                then _verbose="-v";
+    elif [ "$1" == "-t" ];                then _traceLevels="-t $2"; shift;
+    else
+      echo "Bad parameter for ftClientStart: $1"
+      exit 1
+    fi
+    shift
+  done
+
+  # logMsg "Stopping the FT Client on port $_port"
+  # ftClientStop --port $_port
+
+  logMsg "Starting the FT Client on port $_port ($_verbose $_traceLevels)"
+  which ftClient >> $LOG_FILE
+  ftClient --port $_port $_verbose $_traceLevels &
+
+  _port=0
+  _verbose=""
+  _traceLevels=""
+}
+
+
+
+# ------------------------------------------------------------------------------
+#
+# ftClientStop -
+#
+function ftClientStop()
+{
+  _port=7701
+  _verbose=""
+
+  while [ "$#" != 0 ]
+  do
+    if   [ "$1" == "--port" ];            then _port=$2; shift;
+    elif [ "$1" == "--verbose" ];         then _verbose="-v";
+    else
+      echo "Bad parameter for ftClientStop: $1"
+      exit 1
+    fi
+    shift
+  done
+
+  curl localhost:$_port/die > /dev/null 2> /dev/null
+
+  _port=0
+  _verbose=""
+}
+
+
+
+# ------------------------------------------------------------------------------
+#
 # accumulatorStop -
 #
 function accumulatorStop()
@@ -1940,3 +2005,5 @@ export -f cServerStop
 export -f cServerCurl
 export -f urlencode
 export -f orionldMetrics
+export -f ftClientStart
+export -f ftClientStop

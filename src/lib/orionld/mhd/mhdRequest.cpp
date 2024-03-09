@@ -85,12 +85,17 @@ MHD_Result mhdRequest
     *upload_data_size = 0;  // Mark the request as "finished"
 
     int            statusCode;
-    char*          response = mhdRequestTreatF(&statusCode);   // KjNode* Would be better, but, ftClient hasn't got an orionldState ...
+    char*          response    = mhdRequestTreatF(&statusCode);   // KjNode* Would be better, but, ftClient hasn't got an orionldState ...
+    int            responseLen = 0;
     MHD_Response*  r;
 
     if (response == NULL)
       response = (char*) "";
-    r = MHD_create_response_from_buffer(strlen(response), response, MHD_RESPMEM_MUST_COPY);
+    else
+      responseLen = strlen(response);
+
+    KT_T(StRequest, "Response(%d bytes): '%s'", responseLen, response);
+    r = MHD_create_response_from_buffer(responseLen, response, MHD_RESPMEM_MUST_COPY);
     MHD_queue_response(connection, 200, r);
     MHD_destroy_response(r);
   }

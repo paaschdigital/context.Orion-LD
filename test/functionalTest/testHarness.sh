@@ -177,6 +177,7 @@ function usage()
   echo "$empty [--loud (loud - see travis extra info)]"
   echo "$empty [-ld (only ngsild tests)]"
   echo "$empty [-troe (only ngsild TRoE (Temporal Representation of Entities) tests)]"
+  echo "$empty [-dds (only DDS tests)]"
   echo "$empty [-eb (external broker)]"
   echo "$empty [-tk (on error, show the diff using tkdiff)]"
   echo "$empty [-meld (on error, show the diff using meld)]"
@@ -465,6 +466,7 @@ do
   elif [ "$1" == "-v" ];             then verbose=on;
   elif [ "$1" == "-t" ];             then export CB_TRACELEVELS="$2"; shift;
   elif [ "$1" == "-ld" ];            then ngsild=on;
+  elif [ "$1" == "-dds" ];           then dds=on;
   elif [ "$1" == "-troe" ];          then troe=on;
   elif [ "$1" == "-eb" ];            then externalBroker=ON;
   elif [ "$1" == "-tk" ];            then CB_DIFF_TOOL=tkdiff;
@@ -569,6 +571,19 @@ fi
 if [ "$troe" == "on" ]
 then
   dirOrFile=test/functionalTest/cases/0000_troe
+fi
+
+
+
+# -----------------------------------------------------------------------------
+#
+# Only DDS tests?
+#
+# If set, overrides parameter AND -ld + -troe options
+#
+if [ "$dds" == "on" ]
+then
+  dirOrFile=test/functionalTest/cases/0000_dds
 fi
 
 

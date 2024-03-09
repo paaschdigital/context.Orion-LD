@@ -51,6 +51,7 @@ extern "C"
 // Service Routines
 #include "ftClient/getDump.h"                               // getDump
 #include "ftClient/deleteDump.h"                            // deleteDump
+#include "ftClient/die.h"                                   // die
 
 
 
@@ -114,7 +115,7 @@ KArg kargs[] =
   //
   // Broker options
   //
-  { "--port",             "-p",    KaUShort,  &ldPort,            KaOpt, _i 7777,   _i 1027,  _i 65535, "TCP port for incoming requests"                    },
+  { "--port",             "-p",    KaUShort,  &ldPort,            KaOpt, _i 7701,   _i 1027,  _i 65535, "TCP port for incoming requests"                    },
   { "--httpsKey",         "-k",    KaString,  &httpsKey,          KaOpt, NULL,      KA_NL,    KA_NL,    "https key file"                                    },
   { "--httpsCertificate", "-c",    KaString,  &httpsCertificate,  KaOpt, NULL,      KA_NL,    KA_NL,    "https certificate file"                            },
 
@@ -173,6 +174,7 @@ FtService serviceV[] =
 {
   { HTTP_GET,      "/dump", getDump    },
   { HTTP_DELETE,   "/dump", deleteDump },
+  { HTTP_GET,      "/die",  die        },
   { HTTP_NOVERB,   NULL,    NULL       }
 };
 
@@ -472,11 +474,6 @@ int main(int argC, char* argV[])
     exit(1);
   }
 
-  KT_V("kaBuiltinDebug: %d", kaBuiltinDebug);
-  KT_V("mhdMaxConnections: %d", mhdMaxConnections);
-  KT_V("Serving NGSI-LD requests on port: %d", ldPort);
-  KT_D("%s version:                   %s", progName, FTCLIENT_VERSION);
-
   kaInit(klibLogFunction);
 
 
@@ -488,8 +485,11 @@ int main(int argC, char* argV[])
   // kjsonP = kjBufferCreate(&kjson, &kalloc);
 
   dumpArray = kjArray(NULL, "dumpArray");
+
+  KT_V("Serving requests on port %d", ldPort);
+  KT_D("%s version:                   %s", progName, FTCLIENT_VERSION);
   if (mhdStart(ldPort, 4, mhdRequestInit, mhdRequestBodyRead, mhdRequestTreat, mhdRequestEnded) == false)
-    KT_X(1, "Unable to start REST interface on port %d (NGSI-LD)", ldPort);
+    KT_X(1, "Unable to start REST interface on port %d", ldPort);
 
   while (1)
   {
