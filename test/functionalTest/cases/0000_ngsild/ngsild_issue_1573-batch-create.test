@@ -1,0 +1,190 @@
+# Copyright 2024 FIWARE Foundation e.V.
+#
+# This file is part of Orion-LD Context Broker.
+#
+# Orion-LD Context Broker is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Orion-LD Context Broker is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Orion-LD Context Broker. If not, see http://www.gnu.org/licenses/.
+#
+# For those usages not covered by this license please contact with
+# orionld at fiware dot org
+
+# VALGRIND_READY - to mark the test ready for valgrindTestSuite.sh
+
+--NAME--
+Batch Create 22 entities, all with same creDate, then try pagination
+
+--SHELL-INIT--
+dbInit CB
+orionldStart CB
+
+--SHELL--
+
+#
+# 01. Batch create 22 entities
+# 02. GET the first 10
+# 03. GET the next 10
+# 04. GET the first 11
+# 05. GET the next 11
+#
+
+echo "01. Batch create 22 entities"
+echo "============================"
+typeset -i eNo
+eNo=1
+entities="["
+while [ $eNo -le 22 ]
+do
+  eId=$(printf "urn:E%02d" $eNo)
+  entity='{
+    "id": "'$eId'",
+    "type": "T",
+    "A": '$eNo'
+  }'
+  entities=$entities$entity
+  if [ $eNo != 22 ]
+  then
+    entities=$entities","
+  fi
+  eNo=$eNo+1
+done
+entities=$entities"]"
+echo $entities > /tmp/entities
+
+orionCurl --url /ngsi-ld/v1/entityOperations/create --payload "$entities"
+echo
+echo
+
+
+echo "02. GET the first 10"
+echo "===================="
+orionCurl --url '/ngsi-ld/v1/entities?count=true&limit=10&type=T&count=true' | grep '"id"'
+echo
+echo
+
+
+echo "03. GET the next 10"
+echo "==================="
+orionCurl --url '/ngsi-ld/v1/entities?limit=10&offset=10&type=T&count=true' | grep '"id"'
+echo
+echo
+
+
+echo "04. GET the first 11"
+echo "===================="
+orionCurl --url '/ngsi-ld/v1/entities?limit=11&type=T&count=true' | grep '"id"'
+echo
+echo
+
+
+echo "05. GET the next 11"
+echo "==================="
+orionCurl --url '/ngsi-ld/v1/entities?limit=11&offset=11&type=T&count=true' | grep '"id"'
+echo
+echo
+
+
+--REGEXPECT--
+01. Batch create 22 entities
+============================
+HTTP/1.1 201 Created
+Content-Length: 221
+Content-Type: application/json
+Date: REGEX(.*)
+
+[
+    "urn:E01",
+    "urn:E02",
+    "urn:E03",
+    "urn:E04",
+    "urn:E05",
+    "urn:E06",
+    "urn:E07",
+    "urn:E08",
+    "urn:E09",
+    "urn:E10",
+    "urn:E11",
+    "urn:E12",
+    "urn:E13",
+    "urn:E14",
+    "urn:E15",
+    "urn:E16",
+    "urn:E17",
+    "urn:E18",
+    "urn:E19",
+    "urn:E20",
+    "urn:E21",
+    "urn:E22"
+]
+
+
+02. GET the first 10
+====================
+        "id": "urn:E01",
+        "id": "urn:E02",
+        "id": "urn:E03",
+        "id": "urn:E04",
+        "id": "urn:E05",
+        "id": "urn:E06",
+        "id": "urn:E07",
+        "id": "urn:E08",
+        "id": "urn:E09",
+        "id": "urn:E10",
+
+
+03. GET the next 10
+===================
+        "id": "urn:E11",
+        "id": "urn:E12",
+        "id": "urn:E13",
+        "id": "urn:E14",
+        "id": "urn:E15",
+        "id": "urn:E16",
+        "id": "urn:E17",
+        "id": "urn:E18",
+        "id": "urn:E19",
+        "id": "urn:E20",
+
+
+04. GET the first 11
+====================
+        "id": "urn:E01",
+        "id": "urn:E02",
+        "id": "urn:E03",
+        "id": "urn:E04",
+        "id": "urn:E05",
+        "id": "urn:E06",
+        "id": "urn:E07",
+        "id": "urn:E08",
+        "id": "urn:E09",
+        "id": "urn:E10",
+        "id": "urn:E11",
+
+
+05. GET the next 11
+===================
+        "id": "urn:E12",
+        "id": "urn:E13",
+        "id": "urn:E14",
+        "id": "urn:E15",
+        "id": "urn:E16",
+        "id": "urn:E17",
+        "id": "urn:E18",
+        "id": "urn:E19",
+        "id": "urn:E20",
+        "id": "urn:E21",
+        "id": "urn:E22",
+
+
+--TEARDOWN--
+brokerStop CB
+dbDrop CB
