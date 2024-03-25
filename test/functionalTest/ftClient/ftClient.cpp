@@ -5,7 +5,7 @@
 * This file is part of Orion-LD Context Broker.
 *
 * Orion-LD Context Broker is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Affero General Public License as
+* modify it under the terms of the GNU Affero General Public
 * published by the Free Software Foundation, either version 3 of the
 * License, or (at your option) any later version.
 *
@@ -42,11 +42,14 @@ extern "C"
 #include "kjson/kjRender.h"                                 // kjRender
 #include "kjson/kjRenderSize.h"                             // kjRenderSize
 #include "kjson/kjParse.h"                                  // kjParse
+#include "kjson/kjLookup.h"                                 // kjLookup
 }
 
 #include "types/Verb.h"                                     // HTTP Verbs
 #include "mhd/mhdStart.h"                                   // mhdStart - initialize MHD and start receiving REST requests
 #include "common/traceLevels.h"                             // Trace levels for ktrace
+#include "ftClient/ddsPublish.h"                            // ddsPublish
+#include "dds/ddsSubscribe.h"                               // ddsSubscribe
 
 // Service Routines
 #include "ftClient/getDump.h"                               // getDump
@@ -166,16 +169,40 @@ __thread KjNode*        uriParams   = NULL;
 
 
 
+KjNode* postDdsSub(int* statusCodeP)
+{
+  KjNode*     topicNodeP = (uriParams != NULL)? kjLookup(uriParams, "topic") : NULL;
+  const char* topic      = (topicNodeP != NULL)? topicNodeP->value.s : "topicDefault";
+
+  KT_V("Creating DDS Subcription for the topic %s", topic);
+  ddsSubscribe(topic);
+  return NULL;
+}
+
+
+KjNode* postDdsPub(int* statusCodeP)
+{
+  KjNode*     topicNodeP = (uriParams != NULL)? kjLookup(uriParams, "topic") : NULL;
+  const char* topic      = (topicNodeP != NULL)? topicNodeP->value.s : "topicDefault";
+
+  KT_V("Publishing on DDS for the topic %s", topic);
+  ddsPublish(topic);
+  return NULL;
+}
+
+
 // -----------------------------------------------------------------------------
 //
 // serviceV -
 //
 FtService serviceV[] =
 {
-  { HTTP_GET,      "/dump", getDump    },
-  { HTTP_DELETE,   "/dump", deleteDump },
-  { HTTP_GET,      "/die",  die        },
-  { HTTP_NOVERB,   NULL,    NULL       }
+  { HTTP_GET,      "/dump",      getDump    },
+  { HTTP_DELETE,   "/dump",      deleteDump },
+  { HTTP_GET,      "/die",       die        },
+  { HTTP_POST,     "/dds/sub",   postDdsSub },
+  { HTTP_POST,     "/dds/pub",   postDdsPub },
+  { HTTP_NOVERB,   NULL,         NULL       }
 };
 
 

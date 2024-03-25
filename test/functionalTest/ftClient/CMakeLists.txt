@@ -23,6 +23,7 @@ SET (SOURCES
     getDump.cpp
     deleteDump.cpp
     die.cpp
+    ddsPublish.cpp
 )
 
 SET (COMMON_STATIC_LIBS
@@ -33,6 +34,9 @@ SET (COMMON_STATIC_LIBS
     ktrace.a
     kargs.a
     kbase.a
+    fastrtps.a
+    fastcdr.a
+    foonathan_memory-0.7.3.a
 )
 
 SET (ORIONLD_LIBS
@@ -42,6 +46,7 @@ SET (ORIONLD_LIBS
     orionld_troe
     orionld_kjTree
     orionld_mqtt
+    orionld_dds
     orionld_context
     orionld_contextCache
     orionld_regCache
@@ -70,6 +75,12 @@ SET (STATIC_LIBS
     ${COMMON_STATIC_LIBS}
 )
 
+SET (DYNAMIC_LIBS
+  tinyxml2.so
+  crypto.so
+  ssl.so
+)
+
 # Include directories
 # ------------------------------------------------------------
 include_directories("${PROJECT_SOURCE_DIR}/src/app")
@@ -82,7 +93,6 @@ include_directories("${PROJECT_SOURCE_DIR}/test/functionalTest")
 link_directories("/usr/local/lib/")
 link_directories("/usr/lib64/")
 link_directories("/usr/lib/x86_64-linux-gnu")
-
 
 
 # Executable declaration

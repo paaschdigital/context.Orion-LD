@@ -1,0 +1,5 @@
+struct NgsildEntity
+{
+  string id;
+  string type;
+};
