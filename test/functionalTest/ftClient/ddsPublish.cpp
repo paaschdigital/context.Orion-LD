@@ -1,5 +1,6 @@
 #include <chrono>
 #include <thread>
+#include <unistd.h>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
@@ -100,12 +101,14 @@ public:
       }
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
   }
+
+  
   
   //!Initialize the publisher
-  bool init(const char* topicStr)
+  bool init(const char* topicType, const char* topicName)
   {
     entity_.id("0");
-    entity_.type("NgsildEntity");
+    entity_.type("T1");
     
     DomainParticipantQos participantQos;
     participantQos.name("Participant_publisher");
@@ -121,8 +124,8 @@ public:
     type_.register_type(participant_);
     
     // Create the publications Topic
-    KT_V("creating topic: '%s'", topicStr);
-    topic_ = participant_->create_topic(topicStr, "NgsildEntity", TOPIC_QOS_DEFAULT);
+    KT_V("creating topic: '%s' with type 'topicType'", topicName, topicType);
+    topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
     
     if (topic_ == nullptr)
       {
@@ -171,17 +174,20 @@ public:
   }
 };
 
-void ddsPublish(const char* topic)
+
+
+void ddsPublish(const char* topicType, const char* topicName)
 {
   NgsildEntityPublisher* mypub = new NgsildEntityPublisher();
-  KT_V("Initializing publisher for topic '%s'", topic);
-  if(mypub->init(topic))
+  KT_V("Initializing publisher for topicName '%s', topicType '%s'", topicName, topicType);
+  if(mypub->init(topicType, topicName))
     {
-      KT_V("Publishing on topic '%s'", topic);
+      usleep(1000);
+      KT_V("Publishing on topicName '%s', topicType '%s'", topicName, topicType);
       if(mypub->publish())
-	KT_V("Published on topic '%s'", topic);
+	KT_V("Published on topicName '%s', topicType '%s'", topicName, topicType);
       else
-	KT_V("Error publishing on topic '%s'", topic);
+	KT_V("Error publishing on topicName '%s', topicType '%s'", topicName, topicType);
     }
   KT_V("Deleting publisher");
   delete mypub;

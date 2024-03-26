@@ -171,22 +171,40 @@ __thread KjNode*        uriParams   = NULL;
 
 KjNode* postDdsSub(int* statusCodeP)
 {
-  KjNode*     topicNodeP = (uriParams != NULL)? kjLookup(uriParams, "topic") : NULL;
-  const char* topic      = (topicNodeP != NULL)? topicNodeP->value.s : "topicDefault";
+  KjNode*     ddsTopicTypeNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
+  const char* ddsTopicType      = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
 
-  KT_V("Creating DDS Subcription for the topic %s", topic);
-  ddsSubscribe(topic);
+  KjNode*     ddsTopicNameNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
+  const char* ddsTopicName      = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
+  
+  if(ddsTopicName == NULL || ddsTopicType == NULL)
+    {
+      KT_E("Both Name and Type of the topic should not be null");
+      return NULL;
+    }
+
+  KT_V("Creating DDS Subcription for the topic %s:%s", ddsTopicType, ddsTopicName);
+  ddsSubscribe(ddsTopicType, ddsTopicName);
   return NULL;
 }
 
 
 KjNode* postDdsPub(int* statusCodeP)
 {
-  KjNode*     topicNodeP = (uriParams != NULL)? kjLookup(uriParams, "topic") : NULL;
-  const char* topic      = (topicNodeP != NULL)? topicNodeP->value.s : "topicDefault";
+  KjNode*     ddsTopicTypeNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
+  const char* ddsTopicType      = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
 
-  KT_V("Publishing on DDS for the topic %s", topic);
-  ddsPublish(topic);
+  KjNode*     ddsTopicNameNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
+  const char* ddsTopicName      = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
+  
+  if(ddsTopicName == NULL || ddsTopicType == NULL)
+    {
+      KT_E("Both Name and Type of the topic should not be null");
+      return NULL;
+    }
+  
+  KT_V("Publishing on DDS for the topic %s:%s", ddsTopicType, ddsTopicName);
+  ddsPublish(ddsTopicType, ddsTopicName);
   return NULL;
 }
 

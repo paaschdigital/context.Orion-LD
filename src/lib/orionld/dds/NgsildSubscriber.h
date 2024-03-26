@@ -129,7 +129,7 @@ public:
     }
 
     //!Initialize the subscriber
-    bool init(const char* topic)
+  bool init(const char* topicType, const char* topicName)
     {
         DomainParticipantQos participantQos;
         participantQos.name("Participant_subscriber");
@@ -144,7 +144,7 @@ public:
         type_.register_type(participant_);
 
         // Create the subscriptions Topic
-        topic_ = participant_->create_topic("NgsildEntity", "NgsildEntity", TOPIC_QOS_DEFAULT);
+        topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
 
         if (topic_ == nullptr)
         {

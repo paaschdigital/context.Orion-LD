@@ -1,1 +1,2 @@
-extern void ddsPublish(const char* topic);
+extern void ddsPublish(const char* topicType, const char* topicName);
+

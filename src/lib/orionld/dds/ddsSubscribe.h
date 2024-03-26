@@ -1,3 +1,3 @@
-extern void ddsSubscribe(const char* topic);
+extern void ddsSubscribe(const char* topicType, const char* topicName);
 
 

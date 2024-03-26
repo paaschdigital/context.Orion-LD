@@ -5,12 +5,12 @@ extern "C"
 
 #include "orionld/dds/NgsildSubscriber.h"
 
-void ddsSubscribe(const char* topic)
+void ddsSubscribe(const char* topicType, const char* topicName)
 {
   KT_V("Here");
   NgsildSubscriber* subP = new NgsildSubscriber();
   KT_V("Here");
-  if(subP->init(topic))
+  if(subP->init(topicType, topicName))
     {
       KT_V("Here");
       subP->run(1400000);
