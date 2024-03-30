@@ -23,7 +23,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 SET (SOURCES
   NgsildEntity.cxx
   NgsildEntityPubSubTypes.cxx
+  NgsildPublisher.cpp
   ddsSubscribe.cpp
+  ddsPublish.cpp
 )
 
 # Include directories

@@ -20,32 +20,34 @@
 * For those usages not covered by this license please contact with
 * orionld at fiware dot org
 *
-* Author: David Campo, Ken Zangelin
 */
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
 }
 
-#include "orionld/dds/NgsildSubscriber.h"
+#include "orionld/dds/NgsildPublisher.h"                    // NgsildPublisher
 
 
 
 // -----------------------------------------------------------------------------
 //
-// ddsSubscribe -
+// NgsildPublisher::publish -
 //
-void ddsSubscribe(const char* topicType, const char* topicName)
+bool NgsildPublisher::publish()
 {
-  KT_V("Here");
-  NgsildSubscriber* subP = new NgsildSubscriber();
-  KT_V("Here");
-  if(subP->init(topicType, topicName))
-    {
-      KT_V("Here");
-      subP->run(1400000);
-      KT_V("Here");
-    }
-  KT_V("Deleting subscription");
-  delete subP;
+  if (listener_.matched_ <= 0)
+  {
+    KT_W("listener not matched");
+    return false;
+  }
+
+  bool b = writer_->write(&entity_);
+
+  if (b == false)
+    KT_E("Not able to publish");
+  else
+    KT_V("Published");
+
+  return true;
 }

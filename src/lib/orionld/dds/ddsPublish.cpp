@@ -27,25 +27,32 @@ extern "C"
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
 }
 
-#include "orionld/dds/NgsildSubscriber.h"
+#include "orionld/dds/NgsildEntityPubSubTypes.h"
+#include "orionld/dds/NgsildEntity.h"
+#include "orionld/dds/NgsildPublisher.h"
+
+using namespace eprosima::fastdds::dds;
 
 
 
 // -----------------------------------------------------------------------------
 //
-// ddsSubscribe -
+// ddsPublish -
 //
-void ddsSubscribe(const char* topicType, const char* topicName)
+void ddsPublish(const char* topicType, const char* topicName)
 {
-  KT_V("Here");
-  NgsildSubscriber* subP = new NgsildSubscriber();
-  KT_V("Here");
-  if(subP->init(topicType, topicName))
+  NgsildPublisher* mypub = new NgsildPublisher();
+
+  KT_V("Initializing publisher for topicName '%s', topicType '%s'", topicName, topicType);
+  if(mypub->init(topicType, topicName))
     {
-      KT_V("Here");
-      subP->run(1400000);
-      KT_V("Here");
+      usleep(1000);
+      KT_V("Publishing on topicName '%s', topicType '%s'", topicName, topicType);
+      if(mypub->publish())
+	KT_V("Published on topicName '%s', topicType '%s'", topicName, topicType);
+      else
+	KT_V("Error publishing on topicName '%s', topicType '%s'", topicName, topicType);
     }
-  KT_V("Deleting subscription");
-  delete subP;
+  KT_V("Deleting publisher");
+  delete mypub;
 }

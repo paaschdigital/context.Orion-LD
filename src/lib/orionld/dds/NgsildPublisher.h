@@ -1,3 +1,6 @@
+#ifndef SRC_LIB_ORIONLD_DDS_NGSILDPUBLISHER_H_
+#define SRC_LIB_ORIONLD_DDS_NGSILDPUBLISHER_H_
+
 /*
 *
 * Copyright 2024 FIWARE Foundation e.V.
@@ -20,7 +23,6 @@
 * For those usages not covered by this license please contact with
 * orionld at fiware dot org
 *
-* Author: Ken Zangelin
 */
 #include <chrono>
 #include <thread>
@@ -38,33 +40,33 @@ extern "C"
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
 }
 
-#include "dds/NgsildEntityPubSubTypes.h"
-#include "dds/NgsildEntity.h"
+#include "orionld/dds/NgsildEntityPubSubTypes.h"
+#include "orionld/dds/NgsildEntity.h"
 
 using namespace eprosima::fastdds::dds;
 
-class NgsildEntityPublisher
+
+
+// -----------------------------------------------------------------------------
+//
+// NgsildPublisher -
+//
+// FIXME: All the implementation needs to go to NgsildPublisher.cpp
+//
+class NgsildPublisher
 {
 private:
-  
-  NgsildEntity entity_;
-  
-  DomainParticipant* participant_;
-  
-  Publisher* publisher_;
-  
-  Topic* topic_;
-  
-  DataWriter* writer_;
-  
-  TypeSupport type_;
+  NgsildEntity        entity_;
+  DomainParticipant*  participant_;
+  Publisher*          publisher_;
+  Topic*              topic_;
+  DataWriter*         writer_;
+  TypeSupport         type_;
   
   class PubListener : public DataWriterListener
   {
   public:
-    
-    PubListener()
-      : matched_(0)
+    PubListener() : matched_(0)
     {
     }
     
@@ -72,26 +74,28 @@ private:
     {
     }
     
-    void on_publication_matched(
-				DataWriter*,
-				const PublicationMatchedStatus& info) override
+    void on_publication_matched
+    (
+      DataWriter*,
+      const PublicationMatchedStatus& info
+    ) override
     {
       KT_V("info.current_count_change: %d", info.current_count_change);
       if (info.current_count_change == 1)
-	{
-	  matched_ = info.total_count;
-	  std::cout << "Publisher matched." << std::endl;
-	}
+      {
+        matched_ = info.total_count;
+        std::cout << "Publisher matched." << std::endl;
+      }
       else if (info.current_count_change == -1)
-	{
-	  matched_ = info.total_count;
-	  std::cout << "Publisher unmatched." << std::endl;
-	}
+      {
+        matched_ = info.total_count;
+        std::cout << "Publisher unmatched." << std::endl;
+      }
       else
-	{
-	  std::cout << info.current_count_change
-		    << " is not a valid value for PublicationMatchedStatus current count change." << std::endl;
-	}
+      {
+        std::cout << info.current_count_change
+                  << " is not a valid value for PublicationMatchedStatus current count change." << std::endl;
+      }
     }
     
     std::atomic_int matched_;
@@ -99,8 +103,7 @@ private:
   } listener_;
   
 public:
-  
-  NgsildEntityPublisher()
+  NgsildPublisher()
     : participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)
@@ -109,25 +112,23 @@ public:
   {
   }
   
-  virtual ~NgsildEntityPublisher()
+  virtual ~NgsildPublisher()
   {
     if (writer_ != nullptr)
-      {
-	publisher_->delete_datawriter(writer_);
-      }
+    {
+      publisher_->delete_datawriter(writer_);
+    }
     if (publisher_ != nullptr)
-      {
-	participant_->delete_publisher(publisher_);
-      }
+    {
+      participant_->delete_publisher(publisher_);
+    }
     if (topic_ != nullptr)
-      {
-	participant_->delete_topic(topic_);
-      }
+    {
+      participant_->delete_topic(topic_);
+    }
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
   }
 
-  
-  
   //!Initialize the publisher
   bool init(const char* topicType, const char* topicName)
   {
@@ -139,10 +140,10 @@ public:
     participant_ = DomainParticipantFactory::get_instance()->create_participant(0, participantQos);
     
     if (participant_ == nullptr)
-      {
-	KT_E("Create participant failed");
-	return false;
-      }
+    {
+      KT_E("Create participant failed");
+      return false;
+    }
     
     // Register the Type
     type_.register_type(participant_);
@@ -152,48 +153,34 @@ public:
     topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
     
     if (topic_ == nullptr)
-      {
-	KT_E("Create topic failed");	
-	return false;
-      }
+    {
+      KT_E("Create topic failed");	
+      return false;
+    }
     
     // Create the Publisher
     publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
     
     if (publisher_ == nullptr)
-      {
-	KT_E("Create publisher failed");
-	return false;
-      }
+    {
+      KT_E("Create publisher failed");
+      return false;
+    }
     
     // Create the DataWriter
     writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
     
     if (writer_ == nullptr)
-      {
-	KT_E("Create DataWriter failed");
-	return false;
-      }
-    
+    {
+      KT_E("Create DataWriter failed");
+      return false;
+    }
+
     KT_V("Init done");
-    
     return true;
   }
-  
-  //!Send a publication
-  bool publish()
-  {
-    if (listener_.matched_ > 0)
-      {
-	bool b=writer_->write(&entity_);
-	if(b==false)
-	  KT_E("Not able to publish");
-	else
-	  KT_V("Published");
-	return true;
-      }
-    else
-      KT_W("listener not matched");
-    return false;
-  }
+
+  bool publish();
 };
+
+#endif  // SRC_LIB_ORIONLD_DDS_NGSILDPUBLISHER_H_

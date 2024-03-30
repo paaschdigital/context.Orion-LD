@@ -1,3 +1,6 @@
+#ifndef SRC_LIB_ORIONLD_DDS_DDSPUBLISH_H_
+#define SRC_LIB_ORIONLD_DDS_DDSPUBLISH_H_
+
 /*
 *
 * Copyright 2024 FIWARE Foundation e.V.
@@ -22,30 +25,13 @@
 *
 * Author: David Campo, Ken Zangelin
 */
-extern "C"
-{
-#include "ktrace/kTrace.h"                                  // trace messages - ktrace library
-}
-
-#include "orionld/dds/NgsildSubscriber.h"
 
 
 
 // -----------------------------------------------------------------------------
 //
-// ddsSubscribe -
+// ddsPublish -
 //
-void ddsSubscribe(const char* topicType, const char* topicName)
-{
-  KT_V("Here");
-  NgsildSubscriber* subP = new NgsildSubscriber();
-  KT_V("Here");
-  if(subP->init(topicType, topicName))
-    {
-      KT_V("Here");
-      subP->run(1400000);
-      KT_V("Here");
-    }
-  KT_V("Deleting subscription");
-  delete subP;
-}
+extern void ddsPublish(const char* topicType, const char* topicName);
+
+#endif  // SRC_LIB_ORIONLD_DDS_DDSPUBLISH_H_
