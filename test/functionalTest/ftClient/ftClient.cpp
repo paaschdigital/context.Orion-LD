@@ -48,7 +48,7 @@ extern "C"
 #include "types/Verb.h"                                     // HTTP Verbs
 #include "mhd/mhdStart.h"                                   // mhdStart - initialize MHD and start receiving REST requests
 #include "common/traceLevels.h"                             // Trace levels for ktrace
-#include "ftClient/ddsPublish.h"                            // ddsPublish
+#include "dds/ddsPublish.h"                                 // ddsPublish
 #include "dds/ddsSubscribe.h"                               // ddsSubscribe
 
 // Service Routines
@@ -204,7 +204,7 @@ KjNode* postDdsPub(int* statusCodeP)
     }
   
   KT_V("Publishing on DDS for the topic %s:%s", ddsTopicType, ddsTopicName);
-  ddsPublish(ddsTopicType, ddsTopicName);
+  ddsPublish(ddsTopicType, ddsTopicName, payloadTree);
   return NULL;
 }
 

@@ -38,6 +38,13 @@
 
 #include "NgsildEntityPubSubTypes.h"
 
+extern "C"
+{
+#include "ktrace/kTrace.h"                                  // trace messages - ktrace library
+}
+
+#include "orionld/common/traceLevels.h"                     // Trace Levels
+
 using namespace eprosima::fastdds::dds;
 
 
@@ -66,18 +73,11 @@ private:
   void on_subscription_matched(DataReader*, const SubscriptionMatchedStatus& info) override
   {
     if (info.current_count_change == 1)
-    {
-      std::cout << "Subscriber matched." << std::endl;
-    }
+      KT_T(StDds, "Subscriber matched.");
     else if (info.current_count_change == -1)
-    {
-      std::cout << "Subscriber unmatched." << std::endl;
-    }
+      KT_T(StDds, "Subscriber unmatched.");
     else
-    {
-      std::cout << info.current_count_change
-                << " is not a valid value for SubscriptionMatchedStatus current count change" << std::endl;
-    }
+      KT_T(StDds, "'%d' is not a valid value for SubscriptionMatchedStatus current count change", info.current_count_change);
   }
 
   void on_data_available(DataReader* reader) override
@@ -88,8 +88,7 @@ private:
       if (info.valid_data)
       {
         samples_++;
-        std::cout << "Entity Id: " << ngsildEntity_.id() << " with type: " << ngsildEntity_.type()
-                  << " RECEIVED." << std::endl;
+        KT_T(StDds, "Entity Id: %s with type: %s RECEIVED.", ngsildEntity_.id().c_str(), ngsildEntity_.type().c_str());
       }
     }
   }

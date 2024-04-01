@@ -23,7 +23,6 @@ SET (SOURCES
     getDump.cpp
     deleteDump.cpp
     die.cpp
-    ddsPublish.cpp
 )
 
 SET (COMMON_STATIC_LIBS

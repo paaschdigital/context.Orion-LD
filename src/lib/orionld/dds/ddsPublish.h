@@ -25,6 +25,10 @@
 *
 * Author: David Campo, Ken Zangelin
 */
+extern "C"
+{
+#include "kjson/KjNode.h"                                   // KjNode
+}
 
 
 
@@ -32,6 +36,6 @@
 //
 // ddsPublish -
 //
-extern void ddsPublish(const char* topicType, const char* topicName);
+extern void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP);
 
 #endif  // SRC_LIB_ORIONLD_DDS_DDSPUBLISH_H_

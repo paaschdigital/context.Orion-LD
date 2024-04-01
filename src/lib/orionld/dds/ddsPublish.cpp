@@ -25,6 +25,7 @@
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
+#include "kjson/KjNode.h"                                   // KjNode
 }
 
 #include "orionld/dds/NgsildEntityPubSubTypes.h"
@@ -39,20 +40,20 @@ using namespace eprosima::fastdds::dds;
 //
 // ddsPublish -
 //
-void ddsPublish(const char* topicType, const char* topicName)
+void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP)
 {
   NgsildPublisher* mypub = new NgsildPublisher();
 
   KT_V("Initializing publisher for topicName '%s', topicType '%s'", topicName, topicType);
-  if(mypub->init(topicType, topicName))
-    {
-      usleep(1000);
-      KT_V("Publishing on topicName '%s', topicType '%s'", topicName, topicType);
-      if(mypub->publish())
-	KT_V("Published on topicName '%s', topicType '%s'", topicName, topicType);
-      else
-	KT_V("Error publishing on topicName '%s', topicType '%s'", topicName, topicType);
-    }
+  if (mypub->init(topicType, topicName))
+  {
+    usleep(10000);
+    KT_V("Publishing on topicName '%s', topicType '%s'", topicName, topicType);
+    if (mypub->publish(entityP))
+      KT_V("Published on topicName '%s', topicType '%s'", topicName, topicType);
+    else
+      KT_V("Error publishing on topicName '%s', topicType '%s'", topicName, topicType);
+  }
   KT_V("Deleting publisher");
   delete mypub;
 }

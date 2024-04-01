@@ -38,7 +38,10 @@
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
+#include "kjson/KjNode.h"                                   // KjNode
 }
+
+#include "orionld/common/traceLevels.h"                     // Trace Levels
 
 #include "orionld/dds/NgsildEntityPubSubTypes.h"
 #include "orionld/dds/NgsildEntity.h"
@@ -50,8 +53,6 @@ using namespace eprosima::fastdds::dds;
 // -----------------------------------------------------------------------------
 //
 // NgsildPublisher -
-//
-// FIXME: All the implementation needs to go to NgsildPublisher.cpp
 //
 class NgsildPublisher
 {
@@ -84,18 +85,15 @@ private:
       if (info.current_count_change == 1)
       {
         matched_ = info.total_count;
-        std::cout << "Publisher matched." << std::endl;
+        KT_T(StDds, "Publisher matched.");
       }
       else if (info.current_count_change == -1)
       {
         matched_ = info.total_count;
-        std::cout << "Publisher unmatched." << std::endl;
+        KT_T(StDds, "Publisher unmatched.");
       }
       else
-      {
-        std::cout << info.current_count_change
-                  << " is not a valid value for PublicationMatchedStatus current count change." << std::endl;
-      }
+        KT_T(StDds, "'%d' is not a valid value for PublicationMatchedStatus current count change.", info.total_count);
     }
     
     std::atomic_int matched_;
@@ -112,75 +110,9 @@ public:
   {
   }
   
-  virtual ~NgsildPublisher()
-  {
-    if (writer_ != nullptr)
-    {
-      publisher_->delete_datawriter(writer_);
-    }
-    if (publisher_ != nullptr)
-    {
-      participant_->delete_publisher(publisher_);
-    }
-    if (topic_ != nullptr)
-    {
-      participant_->delete_topic(topic_);
-    }
-    DomainParticipantFactory::get_instance()->delete_participant(participant_);
-  }
-
-  //!Initialize the publisher
-  bool init(const char* topicType, const char* topicName)
-  {
-    entity_.id("0");
-    entity_.type("T1");
-    
-    DomainParticipantQos participantQos;
-    participantQos.name("Participant_publisher");
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, participantQos);
-    
-    if (participant_ == nullptr)
-    {
-      KT_E("Create participant failed");
-      return false;
-    }
-    
-    // Register the Type
-    type_.register_type(participant_);
-    
-    // Create the publications Topic
-    KT_V("creating topic: '%s' with type 'topicType'", topicName, topicType);
-    topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
-    
-    if (topic_ == nullptr)
-    {
-      KT_E("Create topic failed");	
-      return false;
-    }
-    
-    // Create the Publisher
-    publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
-    
-    if (publisher_ == nullptr)
-    {
-      KT_E("Create publisher failed");
-      return false;
-    }
-    
-    // Create the DataWriter
-    writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
-    
-    if (writer_ == nullptr)
-    {
-      KT_E("Create DataWriter failed");
-      return false;
-    }
-
-    KT_V("Init done");
-    return true;
-  }
-
-  bool publish();
+  virtual ~NgsildPublisher();
+  bool init(const char* topicType, const char* topicName);
+  bool publish(KjNode* entityP);
 };
 
 #endif  // SRC_LIB_ORIONLD_DDS_NGSILDPUBLISHER_H_
