@@ -125,6 +125,9 @@ static const char* attrTypeChangeTitle(OrionldAttributeType oldType, OrionldAttr
 //
 static void arrayReduce(KjNode* valueP)
 {
+  if (noArrayReduction == true)  // Global variable, from CLI
+    return;
+
   if (valueP->type != KjArray)
     return;
 
@@ -402,16 +405,12 @@ inline bool pCheckAttributeArray
 //
 inline bool pCheckAttributeNull(const char* entityId, KjNode* attrP)
 {
-#if 0
-  LM_W(("RHS for attribute '%s' is NULL - that is forbidden in the NGSI-LD API", attrP->name));
+  LM_W(("RHS for attribute '%s' is NULL - that doesn't work for JSON-LD - use the string 'urn:ngsi-ld:null'", attrP->name));
   orionldError(OrionldBadRequestData,
-               "The use of NULL value is banned in NGSI-LD",
+               "The use of NULL value is not recommended for JSON-LD (the whole attribute gets ignored)",
                attrP->name,
                400);
   return false;
-#else
-  return true;
-#endif
 }
 
 
@@ -511,6 +510,8 @@ bool valueAndTypeCheck(KjNode* attrP, OrionldAttributeType attributeType, bool a
       orionldError(OrionldBadRequestData, "Missing /object/ field for Relationship at creation time", attrP->name, 400);
       return false;
     }
+
+    valueP = objectP;  // For test of null at  the end of the function
   }
   else if (attributeType == LanguageProperty)
   {
@@ -539,6 +540,8 @@ bool valueAndTypeCheck(KjNode* attrP, OrionldAttributeType attributeType, bool a
       orionldError(OrionldBadRequestData, "Missing /languageMap/ field for LanguageProperty at creation time", attrP->name, 400);
       return false;
     }
+
+    valueP = languageMapP;  // For test of null at  the end of the function
   }
   else if (attributeType == VocabularyProperty)
   {
@@ -567,6 +570,8 @@ bool valueAndTypeCheck(KjNode* attrP, OrionldAttributeType attributeType, bool a
       orionldError(OrionldBadRequestData, "Missing /vocab/ field for VocabularyProperty at creation time", attrP->name, 400);
       return false;
     }
+
+    valueP = vocabP;  // For test of null at  the end of the function
   }
   else if (attributeType == JsonProperty)
   {
@@ -595,6 +600,17 @@ bool valueAndTypeCheck(KjNode* attrP, OrionldAttributeType attributeType, bool a
       orionldError(OrionldBadRequestData, "Missing /json/ field for JsonProperty at creation time", attrP->name, 400);
       return false;
     }
+
+    valueP = jsonP;  // For test of null at  the end of the function
+  }
+
+  if ((valueP != NULL) && (valueP->type == KjNull))
+  {
+    orionldError(OrionldBadRequestData,
+                 "The use of NULL value is not recommended for JSON-LD (the whole attribute gets ignored)",
+                 attrP->name,
+                 400);
+    return false;
   }
 
   return true;
@@ -1222,7 +1238,7 @@ static bool pCheckAttributeObject
       {
         char errorString[512];
         snprintf(errorString, sizeof(errorString),
-                 "Got a JSON 'null' in RHS (not allowed in JSON-LD docs) for the entity '%s', attribute '%s', attribute field '%s'",
+                 "The use of NULL value is not recommended for JSON-LD (the whole attribute gets ignored) - for the entity '%s', attribute '%s', attribute field '%s'",
                  entityId, attrP->name, fieldP->name);
         LM_E(("%s", errorString));
         orionldError(OrionldBadRequestData, "Bad Input", errorString, 400);
@@ -1241,7 +1257,8 @@ static bool pCheckAttributeObject
     {
       if (fieldP->type == KjArray)
       {
-        if ((fieldP->value.firstChildP != NULL) && (fieldP->value.firstChildP->next == NULL))
+        // Reduce the array?
+        if ((noArrayReduction != true) && (fieldP->value.firstChildP != NULL) && (fieldP->value.firstChildP->next == NULL))
         {
           fieldP->lastChild = fieldP->value.firstChildP->lastChild;  // Might be an array or object inside the array ...
           fieldP->type      = fieldP->value.firstChildP->type;
