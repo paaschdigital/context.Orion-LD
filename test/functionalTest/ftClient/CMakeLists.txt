@@ -26,7 +26,6 @@ SET (SOURCES
 )
 
 SET (COMMON_STATIC_LIBS
-    microhttpd.a
     kjson.a
     khash.a
     kalloc.a
@@ -99,10 +98,7 @@ link_directories("/usr/lib/x86_64-linux-gnu")
 
 ADD_EXECUTABLE(ftClient ${SOURCES} ${HEADERS})
 
-MESSAGE("ftClient distro: '${DISTRO}'")
-
-
-TARGET_LINK_LIBRARIES(ftClient ${STATIC_LIBS} ${DYNAMIC_LIBS})
+TARGET_LINK_LIBRARIES(ftClient ${STATIC_LIBS} ${DYNAMIC_LIBS} -lmicrohttpd)
 
 IF (${DISTRO} MATCHES "Ubuntu.*")
   MESSAGE("ftClient: INSTALL Ubuntu DISTRO: '${DISTRO}'")
