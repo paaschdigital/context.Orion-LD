@@ -73,9 +73,9 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   type_.register_type(participant_);
 
   // Create the publications Topic
-  KT_V("creating topic: '%s' with type 'topicType'", topicName, topicType);
+  KT_V("creating topic: '%s' with type '%s'", topicName, topicType);
   topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
-
+  
   if (topic_ == nullptr)
   {
     KT_E("Create topic failed");

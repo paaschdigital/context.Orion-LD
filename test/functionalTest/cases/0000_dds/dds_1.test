@@ -25,7 +25,7 @@ Test of orionld version service, with branch name
 
 --SHELL-INIT--
 dbInit CB
-orionldStart CB -mongocOnly
+#orionldStart CB -mongocOnly
 ftClientStart -v -t 0-5000
 ftClientStart -v -t 0-5000 --port $FT2_PORT --logDir $FT2_LOG_DIR
 
@@ -44,10 +44,11 @@ payload='{
   "id": "urn:s1",
   "type": "Subscription"
 }'
-orionCurl --url /dds/sub --port $FT_PORT --payload "$payload"
+orionCurl --url '/dds/sub?ddsTopicType=x&ddsTopicName=x' --port $FT_PORT --payload "$payload"
 echo
 echo
 
+sleep 2
 
 echo "02. Ask FT2 to publish an entity on topic 'x'"
 echo "============================================="
@@ -55,7 +56,7 @@ payload='{
   "id": "urn:e1",
   "type": "x"
 }'
-orionCurl --url /dds/pub --port $FT2_PORT --payload "$payload"
+orionCurl --url '/dds/pub?ddsTopicType=x&ddsTopicName=x' --port $FT2_PORT --payload "$payload"
 echo
 echo
 

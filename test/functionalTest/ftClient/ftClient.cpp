@@ -26,6 +26,8 @@
 #include <strings.h>                                        // bzero
 #include <stdlib.h>                                         // exit, malloc, calloc, free
 
+#include <fastdds/dds/log/FileConsumer.hpp>                 // Use DDS log system FileConsumer
+
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
@@ -56,7 +58,7 @@ extern "C"
 #include "ftClient/deleteDump.h"                            // deleteDump
 #include "ftClient/die.h"                                   // die
 
-
+using namespace eprosima::fastdds::dds;
 
 // -----------------------------------------------------------------------------
 //
@@ -536,6 +538,12 @@ int main(int argC, char* argV[])
   if (mhdStart(ldPort, 4, mhdRequestInit, mhdRequestBodyRead, mhdRequestTreat, mhdRequestEnded) == false)
     KT_X(1, "Unable to start REST interface on port %d", ldPort);
 
+  // Create a FileConsumer consumer that logs entries in "archive_2.log", opening the file in "append" mode.
+  std::unique_ptr<FileConsumer> append_file_consumer(new FileConsumer("/tmp/ftClient_dds.log", true));
+
+  // Register the consumers.
+  Log::RegisterConsumer(std::move(append_file_consumer));
+  
   while (1)
   {
     sleep(1);
