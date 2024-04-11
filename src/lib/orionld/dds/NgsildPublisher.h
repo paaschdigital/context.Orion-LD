@@ -24,6 +24,21 @@
 * orionld at fiware dot org
 *
 */
+
+// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <chrono>
 #include <thread>
 #include <unistd.h>
@@ -46,7 +61,7 @@ extern "C"
 #include "orionld/dds/NgsildEntityPubSubTypes.h"
 #include "orionld/dds/NgsildEntity.h"
 
-using namespace eprosima::fastdds::dds;
+using eprosima::fastdds::dds;
 
 
 
@@ -56,30 +71,29 @@ using namespace eprosima::fastdds::dds;
 //
 class NgsildPublisher
 {
-private:
+ private:
   NgsildEntity        entity_;
   DomainParticipant*  participant_;
   Publisher*          publisher_;
   Topic*              topic_;
   DataWriter*         writer_;
   TypeSupport         type_;
-  
+
   class PubListener : public DataWriterListener
   {
   public:
     PubListener() : matched_(0)
     {
     }
-    
+
     ~PubListener() override
     {
     }
-    
+
     void on_publication_matched
     (
       DataWriter*,
-      const PublicationMatchedStatus& info
-    ) override
+      const PublicationMatchedStatus& info) override
     {
       KT_V("info.current_count_change: %d", info.current_count_change);
       if (info.current_count_change == 1)
@@ -95,12 +109,11 @@ private:
       else
         KT_T(StDds, "'%d' is not a valid value for PublicationMatchedStatus current count change.", info.total_count);
     }
-    
+
     std::atomic_int matched_;
-    
   } listener_;
-  
-public:
+
+ public:
   NgsildPublisher()
     : participant_(nullptr)
     , publisher_(nullptr)
@@ -109,7 +122,7 @@ public:
     , type_(new NgsildEntityPubSubType())
   {
   }
-  
+
   virtual ~NgsildPublisher();
   bool init(const char* topicType, const char* topicName);
   bool publish(KjNode* entityP);

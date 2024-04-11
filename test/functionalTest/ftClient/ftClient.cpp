@@ -20,13 +20,15 @@
 * For those usages not covered by this license please contact with
 * orionld at fiware dot org
 *
-* Author: Ken Zangelin
+* Author: Ken Zangelin, David Campo, Luis Arturo Frigolet
 */
 #include <unistd.h>                                         // sleep
 #include <strings.h>                                        // bzero
 #include <stdlib.h>                                         // exit, malloc, calloc, free
 
-#include <fastdds/dds/log/FileConsumer.hpp>                 // Use DDS log system FileConsumer
+#include <string>                                           // std::string
+
+#include "fastdds/dds/log/FileConsumer.hpp"                 // DDS logging
 
 extern "C"
 {
@@ -53,12 +55,15 @@ extern "C"
 #include "dds/ddsPublish.h"                                 // ddsPublish
 #include "dds/ddsSubscribe.h"                               // ddsSubscribe
 
-// Service Routines
 #include "ftClient/getDump.h"                               // getDump
 #include "ftClient/deleteDump.h"                            // deleteDump
 #include "ftClient/die.h"                                   // die
 
-using namespace eprosima::fastdds::dds;
+
+
+using eprosima::fastdds::dds;
+
+
 
 // -----------------------------------------------------------------------------
 //
@@ -171,44 +176,54 @@ __thread KjNode*        uriParams   = NULL;
 
 
 
+// -----------------------------------------------------------------------------
+//
+// postDdsSub -
+//
 KjNode* postDdsSub(int* statusCodeP)
 {
-  KjNode*     ddsTopicTypeNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
-  const char* ddsTopicType      = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
+  KjNode*      ddsTopicTypeNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
+  const char*  ddsTopicType       = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
+  KjNode*      ddsTopicNameNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
+  const char*  ddsTopicName       = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
 
-  KjNode*     ddsTopicNameNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
-  const char* ddsTopicName      = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
-  
-  if(ddsTopicName == NULL || ddsTopicType == NULL)
-    {
-      KT_E("Both Name and Type of the topic should not be null");
-      return NULL;
-    }
+  if (ddsTopicName == NULL || ddsTopicType == NULL)
+  {
+    KT_E("Both Name and Type of the topic should not be null");
+    return NULL;
+  }
 
   KT_V("Creating DDS Subcription for the topic %s:%s", ddsTopicType, ddsTopicName);
   ddsSubscribe(ddsTopicType, ddsTopicName);
+
   return NULL;
 }
 
 
+
+// -----------------------------------------------------------------------------
+//
+// postDdsPub -
+//
 KjNode* postDdsPub(int* statusCodeP)
 {
-  KjNode*     ddsTopicTypeNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
-  const char* ddsTopicType      = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
+  KjNode*      ddsTopicTypeNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
+  const char*  ddsTopicType       = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
+  KjNode*      ddsTopicNameNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
+  const char*  ddsTopicName       = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
 
-  KjNode*     ddsTopicNameNodeP = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
-  const char* ddsTopicName      = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
-  
-  if(ddsTopicName == NULL || ddsTopicType == NULL)
-    {
-      KT_E("Both Name and Type of the topic should not be null");
-      return NULL;
-    }
-  
+  if (ddsTopicName == NULL || ddsTopicType == NULL)
+  {
+    KT_E("Both Name and Type of the topic should not be null");
+    return NULL;
+  }
+
   KT_V("Publishing on DDS for the topic %s:%s", ddsTopicType, ddsTopicName);
   ddsPublish(ddsTopicType, ddsTopicName, payloadTree);
+
   return NULL;
 }
+
 
 
 // -----------------------------------------------------------------------------
@@ -531,6 +546,34 @@ int main(int argC, char* argV[])
   // kaBufferInit(&kalloc, kallocBuffer, sizeof(kallocBuffer), 32 * 1024, NULL, "Global KAlloc buffer");
   // kjsonP = kjBufferCreate(&kjson, &kalloc);
 
+
+  //
+  // Traces for eProsima FastDDS libraries
+  //
+  // EPROS:
+  //   For now, all traces from the eProsima libraries are kept in a separate logfile.
+  //   This needs to change. It's not acceptable that a library demands to have its own log file.
+  //   Orion-LD uses perhaps 25 different libraries. Should we have 25 different logfiles?
+  //   No, we should not.
+  //
+  //   We need a new type for "Log Consumer", one that accepts a callback function pointer for the application
+  //   that uses the eProsima libraries to do whatever needs to be done with the log data.
+  //   Proposed definition of the callback function:
+  //
+  //     void ddsLog(const char* file, const char* function, int lineNo, int logLevel, int traceLevel, const char* logMsg);
+  //
+  std::string ddsLogFile = std::string(logDir) + "/ftClient_dds.log";
+  std::unique_ptr<FileConsumer> append_file_consumer(new FileConsumer(ddsLogFile, true));
+  Log::RegisterConsumer(std::move(append_file_consumer));
+
+
+  //
+  // Perhaps the most important feature of ftClient is the ability to report on received notifications.
+  // For this purpose, the dumpArray contains all payloads received as notifications.
+  //
+  // NOTE: not only notifications, also forwarded requests, or just about anything received out of the defined API it supports for
+  //       configuration.
+  //
   dumpArray = kjArray(NULL, "dumpArray");
 
   KT_V("Serving requests on port %d", ldPort);
@@ -538,12 +581,6 @@ int main(int argC, char* argV[])
   if (mhdStart(ldPort, 4, mhdRequestInit, mhdRequestBodyRead, mhdRequestTreat, mhdRequestEnded) == false)
     KT_X(1, "Unable to start REST interface on port %d", ldPort);
 
-  // Create a FileConsumer consumer that logs entries in "archive_2.log", opening the file in "append" mode.
-  std::unique_ptr<FileConsumer> append_file_consumer(new FileConsumer("/tmp/ftClient_dds.log", true));
-
-  // Register the consumers.
-  Log::RegisterConsumer(std::move(append_file_consumer));
-  
   while (1)
   {
     sleep(1);

@@ -21,6 +21,22 @@
 * orionld at fiware dot org
 *
 */
+
+//
+// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
@@ -75,7 +91,7 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   // Create the publications Topic
   KT_V("creating topic: '%s' with type '%s'", topicName, topicType);
   topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
-  
+
   if (topic_ == nullptr)
   {
     KT_E("Create topic failed");

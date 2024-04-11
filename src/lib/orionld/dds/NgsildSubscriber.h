@@ -24,6 +24,22 @@
 * orionld at fiware dot org
 *
 */
+
+//
+// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #include <chrono>
 #include <thread>
 
@@ -36,7 +52,7 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
-#include "NgsildEntityPubSubTypes.h"
+#include "orionld/dds/NgsildEntityPubSubTypes.h"
 
 extern "C"
 {
@@ -45,7 +61,7 @@ extern "C"
 
 #include "orionld/common/traceLevels.h"                     // Trace Levels
 
-using namespace eprosima::fastdds::dds;
+using eprosima::fastdds::dds;
 
 
 
@@ -57,7 +73,7 @@ using namespace eprosima::fastdds::dds;
 //
 class NgsildSubscriber
 {
-private:
+ private:
   DomainParticipant*  participant_;
   Subscriber*         subscriber_;
   DataReader*         reader_;
@@ -93,13 +109,11 @@ private:
     }
   }
 
-  NgsildEntity ngsildEntity_;
-
-  std::atomic_int samples_;
-
+  NgsildEntity     ngsildEntity_;
+  std::atomic_int  samples_;
   } listener_;
 
-public:
+ public:
   NgsildSubscriber()
     : participant_(nullptr)
     , subscriber_(nullptr)
@@ -126,13 +140,12 @@ public:
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
   }
 
-  //!Initialize the subscriber
   bool init(const char* topicType, const char* topicName)
   {
     DomainParticipantQos participantQos;
     participantQos.name("Participant_subscriber");
     participant_ = DomainParticipantFactory::get_instance()->create_participant(0, participantQos);
-    
+
     if (participant_ == nullptr)
       return false;
 
@@ -158,7 +171,6 @@ public:
     return true;
   }
 
-  //!Run the Subscriber
   void run(uint32_t samples)
   {
     while ((uint32_t) listener_.samples_ < samples)
