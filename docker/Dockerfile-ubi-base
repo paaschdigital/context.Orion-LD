@@ -39,4 +39,4 @@ COPY ./docker/build-ubi/install-prometheus-client.sh /tmp/build/install-promethe
 RUN /tmp/build/install-prometheus-client.sh
 
 COPY ./docker/build-ubi/install-fastdds.sh /tmp/build/install-fastdds.sh
-RUN /tmp/build/install-install-fastdds.sh
+RUN /tmp/build/install-fastdds.sh
