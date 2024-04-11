@@ -231,7 +231,7 @@ def supported_extension(root, file):
     :return:
     """
     extensions = ['py', 'cpp', 'c', 'h', 'xml', 'json', 'test', 'vtest', 'txt', 'sh', 'spec', 'cfg', 'DISABLED',
-                  'xtest', 'centos', 'js', 'jmx', 'vtestx', 'feature', 'go', 'jsonld', 'supp']
+                  'xtest', 'centos', 'js', 'jmx', 'vtestx', 'feature', 'go', 'jsonld', 'supp', 'cxx', 'ipp', 'hpp']
     names = ['makefile', 'Makefile', 'CMakeLists.txt.orion', 'CMakeLists.txt.orionld']
 
     # Check extensions
