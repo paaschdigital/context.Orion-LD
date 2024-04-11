@@ -32,7 +32,7 @@ extern "C"
 #include "orionld/dds/NgsildEntity.h"
 #include "orionld/dds/NgsildPublisher.h"
 
-using namespace eprosima::fastdds::dds;
+using eprosima::fastdds::dds;
 
 
 

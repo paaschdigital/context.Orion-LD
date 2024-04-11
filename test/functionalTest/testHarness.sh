@@ -285,11 +285,13 @@ function exitFunction()
           echo  "---------------------------------------"
           echo
 
-          cat /tmp/orionld.log | egrep 'lvl=ERR|lvl=WARN' > /tmp/orionld.err-warn.log
-          echo "------------ Last 30 Lines: ---------------------" >> /tmp/orionld.err-warn.log
-          tail -30 /tmp/orionld.log >> /tmp/orionld.err-warn.log
-          # if [ "$ORIONLD_SUPPRESS_LOG_FILE_OUTPUT" != "YES" ]
-          # then
+          if [ -f /tmp/orionld.log ]
+          then
+              cat /tmp/orionld.log | egrep 'lvl=ERR|lvl=WARN' > /tmp/orionld.err-warn.log
+              echo "------------ Last 30 Lines: ---------------------" >> /tmp/orionld.err-warn.log
+              tail -30 /tmp/orionld.log >> /tmp/orionld.err-warn.log
+              # if [ "$ORIONLD_SUPPRESS_LOG_FILE_OUTPUT" != "YES" ]
+              # then
               echo "Errors and warnings from the orionld log file"
               echo "-------------------------------------------------"
               # cat /tmp/orionld.err-warn.log
@@ -297,7 +299,8 @@ function exitFunction()
               echo "-------------------------------------------------"
               echo
               echo
-          # fi
+              # fi
+          fi
 
           if [ -s /tmp/accumulator_9997_stderr ]
           then
@@ -342,7 +345,11 @@ function exitFunction()
           echo
           echo
 
-          cat /tmp/orionld.log | egrep 'lvl=ERR|lvl=WARN' > /tmp/orionld.err-warn.log
+          if [ -f /tmp/orionld.log ]
+          then
+              cat /tmp/orionld.log | egrep 'lvl=ERR|lvl=WARN' > /tmp/orionld.err-warn.log
+          fi
+
           if [ -s /tmp/orionld.err-warn.log ]
           then
               echo "Errors and warnings from the orionld log file"
@@ -1272,7 +1279,10 @@ function runTest()
     fileCleanup $filename $keep $path
   else
     file=$(basename $path .test)
-    cp /tmp/$BROKER.log $file.$BROKER.log
+    if [ -f /tmp/$BROKER.log ]
+    then
+      cp /tmp/$BROKER.log $file.$BROKER.log
+    fi
     runTestStatus="test-failed"
   fi
 }

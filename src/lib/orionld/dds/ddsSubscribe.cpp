@@ -35,17 +35,20 @@ extern "C"
 //
 // ddsSubscribe -
 //
+// EPROS: We would like to have one single subscriber, that subscribes to all DDS notifications
+//        Obviously, we'd need a way to add topic to that subscriber "on the fly"
+//
 void ddsSubscribe(const char* topicType, const char* topicName)
 {
-  KT_V("Here");
+  KT_V("Creating a subscription on '%s/%s'"m topicType, topicName);
+
   NgsildSubscriber* subP = new NgsildSubscriber();
-  KT_V("Here");
-  if(subP->init(topicType, topicName))
-    {
-      KT_V("Here");
-      subP->run(1400000);
-      KT_V("Here");
-    }
-  KT_V("Deleting subscription");
+
+  if (subP->init(topicType, topicName))
+  {
+    subP->run(1400000);  // EPROS: one single subscriber ... run forever ...
+  }
+
+  KT_V("Deleting the subscription on '%s/%s'"m topicType, topicName);
   delete subP;
 }
