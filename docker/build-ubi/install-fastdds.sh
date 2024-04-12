@@ -55,6 +55,7 @@ cd -
 git clone https://github.com/eProsima/Fast-DDS.git
 mkdir Fast-DDS/build
 
+
 ## Prevent glibc bug: https://stackoverflow.com/questions/30680550/c-gettid-was-not-declared-in-this-scope
 file_bug="/opt/Fast-DDS/Fast-DDS/src/cpp/utils/threading/threading_pthread.ipp"
 
