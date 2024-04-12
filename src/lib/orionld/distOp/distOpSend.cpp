@@ -40,11 +40,13 @@ extern "C"
 
 #include "orionld/types/DistOp.h"                                // DistOp
 #include "orionld/types/ApiVersion.h"                            // API_VERSION_NGSILD_V1
+#include "orionld/types/OrionLdRestService.h"                    // OrionLdRestService
 #include "orionld/common/orionldState.h"                         // orionldState
 #include "orionld/common/tenantList.h"                           // tenant0
 #include "orionld/context/orionldCoreContext.h"                  // orionldCoreContextP
 #include "orionld/context/orionldContextItemAliasLookup.h"       // orionldContextItemAliasLookup
 #include "orionld/q/qRender.h"                                   // qRender
+#include "orionld/serviceRoutines/orionldDeleteAttribute.h"      // orionldDeleteAttribute
 #include "orionld/distOp/distOpSend.h"                           // Own interface
 
 
@@ -153,26 +155,36 @@ char* urlCompose(ForwardUrlParts* urlPartsP, KjNode* endpointP)
 
 // -----------------------------------------------------------------------------
 //
-// urlEncode
+// urlEncode - FIXME: move to its own module in orionld/common, or even kbase
 //
 void urlEncode(char* from, char* to, int toLen)
 {
   int fromIx = 0;
   int toIx   = 0;
 
+  LM_T(LmtUriEncode, ("In:  '%s'", from));
   while (from[fromIx] != 0)
   {
-    if (from[fromIx] == '&')
-    {
-      to[toIx++] = '%';
-      to[toIx++] = '2';
-      to[toIx++] = '6';
-    }
+    char f = from[fromIx];
+
+//    if (((f >= 'A') && (f <= 'Z')) || ((f >= 'a') && (f <= 'z')) || ((f >= '0') && (f <= '9')))
+    if ((f != '"') && (f != ' ') && (f != '&'))
+      to[toIx++] = f;
     else
-      to[toIx++] = from[fromIx];
+    {
+      char hi = f >> 4;
+      char lo = f & 0x0F;
+
+      to[toIx++] = '%';
+      to[toIx++] = (hi <= 9)? hi + '0' : hi - 10 + 'A';
+      to[toIx++] = (lo <= 9)? lo + '0' : lo - 10 + 'A';
+    }
 
     ++fromIx;
   }
+
+  to[toIx] = 0;
+  LM_T(LmtUriEncode, ("Out: '%s'", to));
 }
 
 
@@ -332,6 +344,13 @@ void subAttrsCompact(KjNode* requestBody, OrionldContext* fwdContextP)
 {
   for (KjNode* subAttrP = requestBody->value.firstChildP; subAttrP != NULL; subAttrP = subAttrP->next)
   {
+    // NULL => "urn:ngsi-ld:null"
+    if (subAttrP->type == KjNull)
+    {
+      subAttrP->type = KjString;
+      subAttrP->value.s = (char*) "urn:ngsi-ld:null";
+    }
+
     if (strcmp(subAttrP->name, "type")        == 0)   continue;
     if (strcmp(subAttrP->name, "value")       == 0)   continue;
     if (strcmp(subAttrP->name, "object")      == 0)   continue;
@@ -356,6 +375,13 @@ void bodyCompact(DistOpType operation, KjNode* requestBody, OrionldContext* fwdC
   {
     for (KjNode* attrP = requestBody->value.firstChildP; attrP != NULL; attrP = attrP->next)
     {
+      // NULL => "urn:ngsi-ld:null"
+      if (attrP->type == KjNull)
+      {
+        attrP->type = KjString;
+        attrP->value.s = (char*) "urn:ngsi-ld:null";
+      }
+
       if (strcmp(attrP->name, "id")       == 0)  continue;
       if (strcmp(attrP->name, "scope")    == 0)  continue;
       if (strcmp(attrP->name, "location") == 0)  continue;
@@ -367,8 +393,8 @@ void bodyCompact(DistOpType operation, KjNode* requestBody, OrionldContext* fwdC
       }
 
       attrP->name = orionldContextItemAliasLookup(fwdContextP, attrP->name, NULL, NULL);
-
-      subAttrsCompact(attrP, fwdContextP);
+      if (attrP->type == KjObject)
+        subAttrsCompact(attrP, fwdContextP);
     }
   }
 }
@@ -445,9 +471,9 @@ bool distOpSend(DistOp* distOpP, const char* dateHeader, const char* xForwardedF
   // Add URI Params
   //
   LM_T(LmtDistOpRequestParams, ("%s: ---- URL Parameters for %s ------------------------", distOpP->regP->regId, distOpP->id));
-  if (orionldState.verb == HTTP_GET)
+  if ((orionldState.verb == HTTP_GET) || (orionldState.verb == HTTP_DELETE))
   {
-    if (distOpP->attrsParam != NULL)
+    if ((distOpP->attrsParam != NULL) && (orionldState.serviceP->serviceRoutine != orionldDeleteAttribute))
       uriParamAdd(&urlParts, distOpP->attrsParam, NULL, distOpP->attrsParamLen);
 
     //
@@ -456,10 +482,13 @@ bool distOpSend(DistOp* distOpP, const char* dateHeader, const char* xForwardedF
     //
     // There is one exception though - when only the entity ids are wanted as output
     //
-    if (distOpP->onlyIds == true)
-      uriParamAdd(&urlParts, "onlyIds=true", NULL, 12);
-    else
-      uriParamAdd(&urlParts, "options=sysAttrs", NULL, 16);
+    if (orionldState.verb == HTTP_GET)
+    {
+      if (distOpP->onlyIds == true)
+        uriParamAdd(&urlParts, "onlyIds=true", NULL, 12);
+      else
+        uriParamAdd(&urlParts, "options=sysAttrs", NULL, 16);
+    }
 
     if (distOpP->operation == DoQueryEntity)
     {
