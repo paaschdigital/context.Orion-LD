@@ -322,6 +322,47 @@ function exitFunction()
               echo
               echo
           fi
+
+          if [ -s /tmp/ftClient.log ]
+          then
+              echo "/tmp/ftClient.log:"
+              echo "-------------------------------------------------"
+              cat /tmp/ftClient.log
+              echo "-------------------------------------------------"
+              echo
+              echo
+          fi
+
+          if [ -s /tmp/ftClient_dds.log ]
+          then
+              echo "/tmp/ftClient_dds.log:"
+              echo "-------------------------------------------------"
+              cat /tmp/ftClient_dds.log
+              echo "-------------------------------------------------"
+              echo
+              echo
+          fi
+
+          if [ -s /tmp/orion/logs/ftClient2/ftClient.log ]
+          then
+              echo "/tmp/orion/logs/ftClient2/ftClient.log:"
+              echo "-------------------------------------------------"
+              cat /tmp/orion/logs/ftClient2/ftClient.log
+              echo "-------------------------------------------------"
+              echo
+              echo
+          fi
+
+          if [ -s /tmp/orion/logs/ftClient2/ftClient_dds.log ]
+          then
+              echo "/tmp/orion/logs/ftClient2/ftClient_dds.log:"
+              echo "-------------------------------------------------"
+              cat /tmp/orion/logs/ftClient2/ftClient_dds.log
+              echo "-------------------------------------------------"
+              echo
+              echo
+          fi
+
       elif [ $exitCode == 7 ] || [ $exitCode == 8 ] || [ $exitCode == 10 ] || [ $exitCode == 20 ] || [ $exitCode == 11 ]
       then
           echo
