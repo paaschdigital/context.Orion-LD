@@ -77,6 +77,7 @@ SET (DYNAMIC_LIBS
   tinyxml2.so
   crypto.so
   ssl.so
+  pthread.so
 )
 
 # Include directories
