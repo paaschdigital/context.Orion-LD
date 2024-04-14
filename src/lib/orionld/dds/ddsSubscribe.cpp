@@ -51,4 +51,4 @@ void ddsSubscribe(const char* topicType, const char* topicName)
 
   KT_V("Deleting the subscription on '%s/%s'", topicType, topicName);
   delete subP;
-} 
+}
