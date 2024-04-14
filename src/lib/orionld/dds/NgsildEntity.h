@@ -73,7 +73,7 @@ namespace eprosima {
 }  // namespace eprosima
 
 
-#define eProsima_user_DllExport 
+#define eProsima_user_DllExport
 
 
 /*!
