@@ -231,6 +231,7 @@ function vMsg()
 }
 
 
+
 typeset -i errors
 errors=0
 # -----------------------------------------------------------------------------
@@ -699,6 +700,15 @@ then
     exit 1
   fi
 fi
+
+
+
+# -----------------------------------------------------------------------------
+#
+# Directory for ftClient number 2
+#
+vMsg creating directory for ftClient number 2: $FT2_LOG_DIR
+mkdir -p $FT2_LOG_DIR
 
 
 

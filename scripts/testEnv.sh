@@ -109,6 +109,7 @@ export CP6_LOG_DIR=${CP5_LOG_DIR:-/tmp/orion/logs/contextProvider6}
 export FT2_LOG_DIR=${FT2_LOG_DIR:-/tmp/orion/logs/ftClient2}
 
 
+
 # -----------------------------------------------------------------------------
 #
 # PID files
