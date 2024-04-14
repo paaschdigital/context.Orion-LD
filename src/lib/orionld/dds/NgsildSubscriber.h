@@ -61,7 +61,7 @@ extern "C"
 
 #include "orionld/common/traceLevels.h"                     // Trace Levels
 
-using eprosima::fastdds::dds;
+using namespace eprosima::fastdds::dds;
 
 
 

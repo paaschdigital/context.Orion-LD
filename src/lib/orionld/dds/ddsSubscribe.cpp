@@ -40,7 +40,7 @@ extern "C"
 //
 void ddsSubscribe(const char* topicType, const char* topicName)
 {
-  KT_V("Creating a subscription on '%s/%s'"m topicType, topicName);
+  KT_V("Creating a subscription on '%s/%s'", topicType, topicName);
 
   NgsildSubscriber* subP = new NgsildSubscriber();
 
@@ -49,6 +49,6 @@ void ddsSubscribe(const char* topicType, const char* topicName)
     subP->run(1400000);  // EPROS: one single subscriber ... run forever ...
   }
 
-  KT_V("Deleting the subscription on '%s/%s'"m topicType, topicName);
+  KT_V("Deleting the subscription on '%s/%s'", topicType, topicName);
   delete subP;
-}
+} 

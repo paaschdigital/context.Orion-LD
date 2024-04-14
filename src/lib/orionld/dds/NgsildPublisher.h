@@ -61,7 +61,7 @@ extern "C"
 #include "orionld/dds/NgsildEntityPubSubTypes.h"
 #include "orionld/dds/NgsildEntity.h"
 
-using eprosima::fastdds::dds;
+using namespace eprosima::fastdds::dds;
 
 
 

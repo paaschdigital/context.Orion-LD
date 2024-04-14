@@ -61,7 +61,7 @@ extern "C"
 
 
 
-using eprosima::fastdds::dds;
+using namespace eprosima::fastdds::dds;
 
 
 
