@@ -32,9 +32,6 @@ SET (COMMON_STATIC_LIBS
     ktrace.a
     kargs.a
     kbase.a
-    fastrtps.a
-    fastcdr.a
-    foonathan_memory-0.7.3.a
 )
 
 SET (ORIONLD_LIBS
@@ -74,6 +71,9 @@ SET (STATIC_LIBS
 )
 
 SET (DYNAMIC_LIBS
+  fastrtps.so
+  fastcdr.so
+  foonathan_memory-0.7.3.so
   tinyxml2.so
   crypto.so
   ssl.so
