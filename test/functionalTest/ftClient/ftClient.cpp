@@ -190,13 +190,18 @@ KjNode* postDdsSub(int* statusCodeP)
   if (ddsTopicName == NULL || ddsTopicType == NULL)
   {
     KT_E("Both Name and Type of the topic should not be null");
+    *statusCodeP = 400;
     return NULL;
   }
 
   KT_V("Creating DDS Subcription for the topic %s:%s", ddsTopicType, ddsTopicName);
   ddsSubscribe(ddsTopicType, ddsTopicName);
 
-  return NULL;
+  KjNode* treeP = kjObject(NULL, NULL);
+  KjNode* textP = kjString(NULL, "Status", "OK");
+  kjChildAdd(treeP, textP);
+  *statusCodeP = 201;
+  return treeP;
 }
 
 
@@ -421,6 +426,7 @@ char* mhdRequestTreat(int* statusCodeP)
   kjChildAdd(dumpArray, dump);
 
   *statusCodeP = 200;
+
   return (char*) "";
 }
 

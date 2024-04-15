@@ -100,9 +100,11 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
     KT_E("Create topic failed");
     return false;
   }
+  KT_V("created topic: '%s' with type '%s'!", topicName, topicType);
 
   // Create the Publisher
   publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
+  KT_V("created publisher");
 
   if (publisher_ == nullptr)
   {
@@ -111,6 +113,7 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   }
 
   // Create the DataWriter
+  KT_V("creating writer");
   writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
 
   if (writer_ == nullptr)
@@ -118,6 +121,7 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
     KT_E("Create DataWriter failed");
     return false;
   }
+  KT_V("created writer");
 
   KT_V("Init done");
   return true;

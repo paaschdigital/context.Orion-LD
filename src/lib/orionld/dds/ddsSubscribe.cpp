@@ -22,6 +22,8 @@
 *
 * Author: David Campo, Ken Zangelin
 */
+#include <pthread.h>                                        // pthread_exit
+
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
@@ -38,17 +40,41 @@ extern "C"
 // EPROS: We would like to have one single subscriber, that subscribes to all DDS notifications
 //        Obviously, we'd need a way to add topic to that subscriber "on the fly"
 //
-void ddsSubscribe(const char* topicType, const char* topicName)
+typedef struct X
 {
-  KT_V("Creating a subscription on '%s/%s'", topicType, topicName);
+  char* topicType;
+  char* topicName;
+} X;
+
+static void* ddsSubscribe2(void* vP)
+{
+  X* xP = (X*) vP;
+
+  KT_V("Creating a subscription on '%s/%s'", xP->topicType, xP->topicName);
 
   NgsildSubscriber* subP = new NgsildSubscriber();
 
-  if (subP->init(topicType, topicName))
+  if (subP->init(xP->topicType, xP->topicName))
   {
     subP->run(1400000);  // EPROS: one single subscriber ... run forever ...
   }
 
-  KT_V("Deleting the subscription on '%s/%s'", topicType, topicName);
+  KT_V("Deleting the subscription on '%s/%s'", xP->topicType, xP->topicName);
   delete subP;
+
+  return NULL;
+}
+
+void ddsSubscribe(const char* topicType, const char* topicName)
+{
+  pthread_t  tid;
+  X          x;
+
+  x.topicType = (char*) topicType;
+  x.topicName = (char*) topicName;
+
+  KT_V("Starting thread for DDS subscription on %s/%s", x.topicType, x.topicName);
+
+  pthread_create(&tid, NULL, ddsSubscribe2, &x);
+  KT_V("Continue the execution of father thread");
 }
