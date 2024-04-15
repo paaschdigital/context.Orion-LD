@@ -75,7 +75,5 @@ void ddsSubscribe(const char* topicType, const char* topicName)
   xP->topicName = strdup(topicName);
 
   KT_V("Starting thread for DDS subscription on %s/%s", xP->topicType, xP->topicName);
-
   pthread_create(&tid, NULL, ddsSubscribe2, xP);
-  KT_V("Continue the execution of father thread");
 }

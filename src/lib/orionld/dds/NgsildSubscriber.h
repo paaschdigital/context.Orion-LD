@@ -100,6 +100,9 @@ class NgsildSubscriber
   void on_data_available(DataReader* reader) override
   {
     SampleInfo info;
+
+    KT_T(StDds, "Notification arrived");
+
     if (reader->take_next_sample(&ngsildEntity_, &info) == ReturnCode_t::RETCODE_OK)
     {
       if (info.valid_data)
