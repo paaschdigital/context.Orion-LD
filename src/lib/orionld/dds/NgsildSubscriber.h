@@ -109,11 +109,13 @@ class NgsildSubscriber
       {
         samples_++;
         KT_T(StDds, "Entity Id: %s with type: %s RECEIVED.", ngsildEntity_.id().c_str(), ngsildEntity_.type().c_str());
-        
-        // accumulate
+
+        //
+        // Accumulate notifications
+        //
         KjNode* dump    = kjObject(NULL, "item");  // No name as part of array
         KjNode* idP     = kjString(NULL, "id", ngsildEntity_.id().c_str());
-        KjNode* typeP   = kjString(NULL, "type", ngsildEntity_.type().c_str()); 
+        KjNode* typeP   = kjString(NULL, "type", ngsildEntity_.type().c_str());
 
         kjChildAdd(dump, idP);
         kjChildAdd(dump, typeP);
