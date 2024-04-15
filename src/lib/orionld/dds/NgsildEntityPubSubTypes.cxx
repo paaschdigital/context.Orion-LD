@@ -47,8 +47,8 @@
 #include "NgsildEntityPubSubTypes.h"
 #include "NgsildEntityCdrAux.hpp"
 
-using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
-using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
+using SerializedPayload_t    = eprosima::fastrtps::rtps::SerializedPayload_t;
+using InstanceHandle_t       = eprosima::fastrtps::rtps::InstanceHandle_t;
 using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 

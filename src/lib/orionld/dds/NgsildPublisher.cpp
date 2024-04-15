@@ -73,6 +73,9 @@ NgsildPublisher::~NgsildPublisher()
 //
 // NgsildPublisher::init -
 //
+// FIXME: need to move the params to the constructor, as the constructor creates the
+//        NgsildEntityPubSubType where currently the topic name is hardcoded to "NgsildEntity".
+//
 bool NgsildPublisher::init(const char* topicType, const char* topicName)
 {
   DomainParticipantQos participantQos;
