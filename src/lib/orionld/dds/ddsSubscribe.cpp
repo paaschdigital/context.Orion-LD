@@ -22,6 +22,7 @@
 *
 * Author: David Campo, Ken Zangelin
 */
+#include <string.h>
 #include <pthread.h>                                        // pthread_exit
 
 extern "C"
@@ -68,13 +69,13 @@ static void* ddsSubscribe2(void* vP)
 void ddsSubscribe(const char* topicType, const char* topicName)
 {
   pthread_t  tid;
-  X          x;
+  X*         xP = (X*) malloc(sizeof(X));
 
-  x.topicType = (char*) topicType;
-  x.topicName = (char*) topicName;
+  xP->topicType = strdup(topicType);
+  xP->topicName = strdup(topicName);
 
-  KT_V("Starting thread for DDS subscription on %s/%s", x.topicType, x.topicName);
+  KT_V("Starting thread for DDS subscription on %s/%s", xP->topicType, xP->topicName);
 
-  pthread_create(&tid, NULL, ddsSubscribe2, &x);
+  pthread_create(&tid, NULL, ddsSubscribe2, xP);
   KT_V("Continue the execution of father thread");
 }

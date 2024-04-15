@@ -48,7 +48,6 @@ orionCurl --url '/dds/sub?ddsTopicType=NgsildEntity&ddsTopicName=x' --port $FT_P
 echo
 echo
 
-sleep 2
 
 echo "02. Ask FT2 to publish an entity on topic 'x'"
 echo "============================================="
@@ -60,10 +59,11 @@ orionCurl --url '/dds/pub?ddsTopicType=NgsildEntity&ddsTopicName=x' --port $FT2_
 echo
 echo
 
+sleep 1.5
 
 echo "03. Ask FT1 what it has received"
 echo "================================"
-orionCurl --url /dump --port $FT_PORT --noPayloadCheck
+orionCurl --url /dds/dump --port $FT_PORT --noPayloadCheck
 echo
 echo
 

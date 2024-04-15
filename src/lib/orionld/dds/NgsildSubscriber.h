@@ -57,13 +57,14 @@
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
+#include "kjson/kjBuilder.h"                                // kjObject, kjString, kjChildAdd, ...
 }
 
 #include "orionld/common/traceLevels.h"                     // Trace Levels
 
 using namespace eprosima::fastdds::dds;
 
-
+KjNode* ddsDumpArray = NULL;
 
 // -----------------------------------------------------------------------------
 //
@@ -105,6 +106,19 @@ class NgsildSubscriber
       {
         samples_++;
         KT_T(StDds, "Entity Id: %s with type: %s RECEIVED.", ngsildEntity_.id().c_str(), ngsildEntity_.type().c_str());
+        
+        // accumulate
+        KjNode* dump    = kjObject(NULL, "item");  // No name as part of array
+        KjNode* idP     = kjString(NULL, "id", ngsildEntity_.id().c_str());
+        KjNode* typeP   = kjString(NULL, "type", ngsildEntity_.type().c_str()); 
+
+        kjChildAdd(dump, idP);
+        kjChildAdd(dump, typeP);
+
+        if (ddsDumpArray == NULL)
+          ddsDumpArray = kjArray(NULL, "ddsDumpArray");
+
+        kjChildAdd(ddsDumpArray, dump);
       }
     }
   }

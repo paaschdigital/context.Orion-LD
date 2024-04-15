@@ -230,6 +230,18 @@ KjNode* postDdsPub(int* statusCodeP)
 }
 
 
+extern KjNode* ddsDumpArray;
+// -----------------------------------------------------------------------------
+//
+// getDdsDump -
+//
+KjNode* getDdsDump(int* statusCodeP)
+{
+  *statusCodeP = 200;
+
+  return ddsDumpArray;
+}
+
 
 // -----------------------------------------------------------------------------
 //
@@ -240,6 +252,7 @@ FtService serviceV[] =
   { HTTP_GET,      "/dump",      getDump    },
   { HTTP_DELETE,   "/dump",      deleteDump },
   { HTTP_GET,      "/die",       die        },
+  { HTTP_GET,      "/dds/dump",  getDdsDump },
   { HTTP_POST,     "/dds/sub",   postDdsSub },
   { HTTP_POST,     "/dds/pub",   postDdsPub },
   { HTTP_NOVERB,   NULL,         NULL       }
