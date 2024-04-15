@@ -178,6 +178,26 @@ __thread KjNode*        uriParams   = NULL;
 
 // -----------------------------------------------------------------------------
 //
+// ftErrorResponse -
+//
+KjNode* ftErrorResponse(int code, const char* title, const char* detail)
+{
+  KjNode* errorP  = kjObject(NULL, NULL);
+  KjNode* codeP   = kjInteger(NULL, "statusCode", code);
+  KjNode* titleP  = kjString(NULL,  "title",      title);
+  KjNode* detailP = kjString(NULL,  "detail",     detail);
+
+  kjChildAdd(errorP, codeP);
+  kjChildAdd(errorP, titleP);
+  kjChildAdd(errorP, detailP);
+
+  return errorP;
+}
+
+
+
+// -----------------------------------------------------------------------------
+//
 // postDdsSub -
 //
 KjNode* postDdsSub(int* statusCodeP)
@@ -191,17 +211,14 @@ KjNode* postDdsSub(int* statusCodeP)
   {
     KT_E("Both Name and Type of the topic should not be null");
     *statusCodeP = 400;
-    return NULL;
+    return ftErrorResponse(400, "URI Param missing", "Both Name and Type of the topic must be present");
   }
 
   KT_V("Creating DDS Subcription for the topic %s:%s", ddsTopicType, ddsTopicName);
   ddsSubscribe(ddsTopicType, ddsTopicName);
 
-  KjNode* treeP = kjObject(NULL, NULL);
-  KjNode* textP = kjString(NULL, "Status", "OK");
-  kjChildAdd(treeP, textP);
   *statusCodeP = 201;
-  return treeP;
+  return NULL;
 }
 
 
@@ -220,14 +237,17 @@ KjNode* postDdsPub(int* statusCodeP)
   if (ddsTopicName == NULL || ddsTopicType == NULL)
   {
     KT_E("Both Name and Type of the topic should not be null");
-    return NULL;
+    *statusCodeP = 400;
+    return ftErrorResponse(400, "URI Param missing", "Both Name and Type of the topic must be present");
   }
 
   KT_V("Publishing on DDS for the topic %s:%s", ddsTopicType, ddsTopicName);
   ddsPublish(ddsTopicType, ddsTopicName, payloadTree);
 
+  *statusCodeP = 204;
   return NULL;
 }
+
 
 
 extern KjNode* ddsDumpArray;
@@ -238,9 +258,24 @@ extern KjNode* ddsDumpArray;
 KjNode* getDdsDump(int* statusCodeP)
 {
   *statusCodeP = 200;
-
   return ddsDumpArray;
 }
+
+
+
+// -----------------------------------------------------------------------------
+//
+// deleteDdsDump -
+//
+KjNode* deleteDdsDump(int* statusCodeP)
+{
+  kjFree(ddsDumpArray);
+  ddsDumpArray = kjArray(NULL, NULL);
+
+  *statusCodeP = 200;
+  return NULL;
+}
+
 
 
 // -----------------------------------------------------------------------------
@@ -249,13 +284,14 @@ KjNode* getDdsDump(int* statusCodeP)
 //
 FtService serviceV[] =
 {
-  { HTTP_GET,      "/dump",      getDump    },
-  { HTTP_DELETE,   "/dump",      deleteDump },
-  { HTTP_GET,      "/die",       die        },
-  { HTTP_GET,      "/dds/dump",  getDdsDump },
-  { HTTP_POST,     "/dds/sub",   postDdsSub },
-  { HTTP_POST,     "/dds/pub",   postDdsPub },
-  { HTTP_NOVERB,   NULL,         NULL       }
+  { HTTP_GET,      "/dump",      getDump       },
+  { HTTP_DELETE,   "/dump",      deleteDump    },
+  { HTTP_GET,      "/die",       die           },
+  { HTTP_POST,     "/dds/sub",   postDdsSub    },
+  { HTTP_POST,     "/dds/pub",   postDdsPub    },
+  { HTTP_GET,      "/dds/dump",  getDdsDump    },
+  { HTTP_DELETE,   "/dds/dump",  deleteDdsDump },
+  { HTTP_NOVERB,   NULL,         NULL          }
 };
 
 

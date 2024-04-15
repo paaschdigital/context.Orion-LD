@@ -26,6 +26,7 @@ Test of orionld version service, with branch name
 --SHELL-INIT--
 dbInit CB
 #orionldStart CB -mongocOnly
+killall --quiet ftClient
 ftClientStart -v -t 0-5000
 ftClientStart -v -t 0-5000 --port $FT2_PORT --logDir $FT2_LOG_DIR
 
@@ -59,7 +60,7 @@ orionCurl --url '/dds/pub?ddsTopicType=NgsildEntity&ddsTopicName=x' --port $FT2_
 echo
 echo
 
-sleep 1.5
+sleep .5
 
 echo "03. Ask FT1 what it has received"
 echo "================================"
@@ -68,7 +69,52 @@ echo
 echo
 
 
+echo "04. Reset the DDS notification accumulation"
+echo "==========================================="
+orionCurl --url /dds/dump --port $FT_PORT -X DELETE
+echo
+echo
+
+
 --REGEXPECT--
+01. Ask FT1 to create a DDS subscription on topic 'x'
+=====================================================
+HTTP/1.1 201 Created
+Content-Length: 0
+Date: REGEX(.*)
+
+
+
+02. Ask FT2 to publish an entity on topic 'x'
+=============================================
+HTTP/1.1 204 No Content
+Date: REGEX(.*)
+
+
+
+03. Ask FT1 what it has received
+================================
+HTTP/1.1 200 OK
+Content-Length: 48
+Date: REGEX(.*)
+
+[
+  {
+    "id": "urn:e1",
+    "type": "x"
+  }
+]
+
+
+
+04. Reset the DDS notification accumulation
+===========================================
+HTTP/1.1 200 OK
+Content-Length: 0
+Date: REGEX(.*)
+
+
+
 --TEARDOWN--
 brokerStop CB
 ftClientStop
