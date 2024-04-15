@@ -355,16 +355,12 @@ sudo apt install -y timescaledb-postgresql-12
 
 #### Enable postgres
 ```bash
-systemctl enable postgresql
+sudo systemctl enable postgresql
 ```
 
 #### Edit postgresql.conf, enabling timescaledb
 ```bash
-sudo nano /etc/postgresql/12/main/postgresql.conf
-```
-Add this line at the end of the file and save it
-```bash
-shared_preload_libraries = 'timescaledb'
+echo "shared_preload_libraries = 'timescaledb'" | sudo tee -a /etc/postgresql/12/main/postgresql.conf
 ```
 #### Restart Postgres
 ```bash
@@ -375,15 +371,7 @@ sudo /etc/init.d/postgresql restart
 NOTE: As default Postgres user and password, Orion-LD uses `postgres` and `password`.
       This is probably not the username/password that you want to use, so, change those, and start the broker accordingly (CLI options `-troeUser` + `-troePwd`).
 ```bash
-# Change user to 'postgres'
-sudo su - postgres
-# Enter psql interactive shell
-psql
-ALTER USER postgres WITH PASSWORD 'password';
-\q
-
-# Once out of the psql interactive shell - exit the session as 'postgres' user
-logout
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';"
 ```
 
 ### MongoDB
