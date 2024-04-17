@@ -59,7 +59,7 @@ void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP)
     // There might easily be 10,000 publications per second.
     //
 
-#ifndef DDS_RELIABLE
+#ifdef DDS_SLEEP
     usleep(10000);
 #endif
 
@@ -69,7 +69,7 @@ void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP)
     else
       KT_V("Error publishing on topicType '%s', topicName '%s'", topicType, topicName);
 
-#ifndef DDS_RELIABLE
+#ifdef DDS_SLEEP
     usleep(10000);
 #endif
   }
