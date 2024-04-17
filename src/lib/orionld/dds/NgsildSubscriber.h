@@ -141,7 +141,7 @@ class NgsildSubscriber
   } listener_;
 
  public:
-  NgsildSubscriber(const char* topicType)
+  explicit NgsildSubscriber(const char* topicType)
     : participant_(nullptr)
     , subscriber_(nullptr)
     , reader_(nullptr)

@@ -69,7 +69,7 @@ using namespace eprosima::fastdds::dds;
 //
 // NgsildPublisher -
 //
-class NgsildPublisher // : DataWriterListener
+class NgsildPublisher  // : DataWriterListener
 {
  private:
   NgsildEntity        entity_;
@@ -96,7 +96,8 @@ class NgsildPublisher // : DataWriterListener
     (
       DataWriter*,
       const PublicationMatchedStatus& info
-    ) override
+    )
+    override
     {
       // FIXME: Don't Publish until entering here!  (mutex)
       KT_V("info.current_count_change: %d", info.current_count_change);
@@ -120,7 +121,7 @@ class NgsildPublisher // : DataWriterListener
   } listener_;
 
  public:
-  NgsildPublisher(const char* topicType)
+  explicit NgsildPublisher(const char* topicType)
     : participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)

@@ -149,11 +149,19 @@ bool NgsildPublisher::init(const char* topicName)
 //
 bool NgsildPublisher::publish(KjNode* entityP)
 {
-  int attempts = 1;
-  while ((listener_.ready_ == false) && (attempts < 10))
+  int attempts    = 1;
+  int maxAttempts = 1000;  // FIXME: sleeping here for one whole second it just not good enough!!!
+
+  while ((listener_.ready_ == false) && (attempts < maxAttempts))
   {
-    usleep(1000);
+    usleep(1000);  // One millisecond
     ++attempts;
+  }
+
+  if (listener_.ready_ == false)
+  {
+    KT_W("listener still not ready after waiting for %d milliseconds", attempts);
+    return false;
   }
 
   if (listener_.matched_ <= 0)
