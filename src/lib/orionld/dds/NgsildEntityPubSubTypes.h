@@ -72,7 +72,7 @@ class NgsildEntityPubSubType : public eprosima::fastdds::dds::TopicDataType
  public:
   typedef NgsildEntity type;
 
-  eProsima_user_DllExport NgsildEntityPubSubType();  // FIXME: topicType needs to be input to this constructor
+  eProsima_user_DllExport NgsildEntityPubSubType(const char* topicType);
   eProsima_user_DllExport ~NgsildEntityPubSubType() override;
 
   eProsima_user_DllExport bool serialize(

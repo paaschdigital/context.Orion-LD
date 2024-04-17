@@ -45,7 +45,7 @@ payload='{
   "id": "urn:s1",
   "type": "Subscription"
 }'
-orionCurl --url '/dds/sub?ddsTopicType=NgsildEntity&ddsTopicName=x' --port $FT_PORT --payload "$payload"
+orionCurl --url '/dds/sub?ddsTopicType=someTopic&ddsTopicName=x' --port $FT_PORT --payload "$payload"
 echo
 echo
 
@@ -58,7 +58,7 @@ payload='{
   "id": "urn:e1",
   "type": "x"
 }'
-orionCurl --url '/dds/pub?ddsTopicType=NgsildEntity&ddsTopicName=x' --port $FT2_PORT --payload "$payload"
+orionCurl --url '/dds/pub?ddsTopicType=someTopic&ddsTopicName=x' --port $FT2_PORT --payload "$payload"
 echo
 echo
 

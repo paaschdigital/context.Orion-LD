@@ -59,9 +59,9 @@ static void* ddsSubscribe2(void* vP)
 
   KT_V("Creating a subscription on '%s/%s'", spP->topicType, spP->topicName);
 
-  NgsildSubscriber* subP = new NgsildSubscriber();
+  NgsildSubscriber* subP = new NgsildSubscriber(spP->topicType);
 
-  if (subP->init(spP->topicType, spP->topicName))
+  if (subP->init(spP->topicName))
   {
     subP->run(1400000);  // EPROS: one single subscriber ... run forever ...
   }

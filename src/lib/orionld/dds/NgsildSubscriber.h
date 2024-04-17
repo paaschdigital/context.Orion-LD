@@ -141,12 +141,12 @@ class NgsildSubscriber
   } listener_;
 
  public:
-  NgsildSubscriber()
+  NgsildSubscriber(const char* topicType)
     : participant_(nullptr)
     , subscriber_(nullptr)
     , reader_(nullptr)
     , topic_(nullptr)
-    , type_(new NgsildEntityPubSubType())
+    , type_(new NgsildEntityPubSubType(topicType))
   {
   }
 
@@ -167,7 +167,7 @@ class NgsildSubscriber
     DomainParticipantFactory::get_instance()->delete_participant(participant_);
   }
 
-  bool init(const char* topicType, const char* topicName)
+  bool init(const char* topicName)
   {
     DomainParticipantQos participantQos;
     participantQos.name("Participant_subscriber");
@@ -180,6 +180,7 @@ class NgsildSubscriber
     type_.register_type(participant_);
 
     // Create the subscriptions Topic
+    const char* topicType = type_->getName();
     topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
 
     if (topic_ == nullptr)

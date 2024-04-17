@@ -77,7 +77,7 @@ NgsildPublisher::~NgsildPublisher()
 // FIXME: need to move the params to the constructor, as the constructor creates the
 //        NgsildEntityPubSubType where currently the topic name is hardcoded to "NgsildEntity".
 //
-bool NgsildPublisher::init(const char* topicType, const char* topicName)
+bool NgsildPublisher::init(const char* topicName)
 {
   DomainParticipantQos  participantQos;
 
@@ -94,6 +94,7 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   type_.register_type(participant_);
 
   // Create the publications Topic
+  const char* topicType = type_->getName();
   KT_V("creating topic (type: '%s') '%s'", topicType, topicName);
   topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
 

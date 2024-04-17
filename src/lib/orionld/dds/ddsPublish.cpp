@@ -49,10 +49,10 @@ using namespace eprosima::fastdds::dds;
 //
 void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP)
 {
-  NgsildPublisher* publisherP = new NgsildPublisher();  // FIXME: topicType needs to be input to this constructor
+  NgsildPublisher* publisherP = new NgsildPublisher(topicType);
 
   KT_V("Initializing publisher for topicType '%s', topicName '%s'", topicType, topicName);
-  if (publisherP->init(topicType, topicName))
+  if (publisherP->init(topicName))
   {
     //
     // FIXME: we can't do new+publish+delete for each and every publication!

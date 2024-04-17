@@ -57,9 +57,9 @@ using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 //
 // NgsildEntityPubSubType::NgsildEntityPubSubType
 //
-NgsildEntityPubSubType::NgsildEntityPubSubType()  // FIXME: topicType needs to be input to this constructor
+NgsildEntityPubSubType::NgsildEntityPubSubType(const char* topicType)
 {
-  setName("NgsildEntity");  // topicType
+  setName(topicType);
   uint32_t type_size =
 #if FASTCDR_VERSION_MAJOR == 1
     static_cast<uint32_t>(NgsildEntity::getMaxCdrSerializedSize());

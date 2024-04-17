@@ -120,17 +120,17 @@ class NgsildPublisher // : DataWriterListener
   } listener_;
 
  public:
-  NgsildPublisher()
+  NgsildPublisher(const char* topicType)
     : participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)
     , writer_(nullptr)
-    , type_(new NgsildEntityPubSubType())  // FIXME: topicType needs to be input to this constructor
+    , type_(new NgsildEntityPubSubType(topicType))
   {
   }
 
   virtual ~NgsildPublisher();
-  bool init(const char* topicType, const char* topicName);
+  bool init(const char* topicName);
   bool publish(KjNode* entityP);
 };
 
