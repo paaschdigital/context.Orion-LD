@@ -122,12 +122,8 @@ bool NgsildPublisher::init(const char* topicName)
 
   wqos.reliability().kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
   wqos.durability().kind  = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-  wqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-  wqos.history().depth    = 5;
-  KT_V("reliability kind: %d", eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS);
-  KT_V("durability kind:  %d", eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS);
-  KT_V("history kind:     %d", eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS);
-  KT_V("history depth:    %d", 5);
+//  wqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+//  wqos.history().depth    = 5;
   writer_                 = publisher_->create_datawriter(topic_, wqos, &listener_);
 #else
   writer_                 = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
@@ -153,6 +149,13 @@ bool NgsildPublisher::init(const char* topicName)
 //
 bool NgsildPublisher::publish(KjNode* entityP)
 {
+  int attempts = 1;
+  while ((listener_.ready_ == false) && (attempts < 10))
+  {
+    usleep(1000);
+    ++attempts;
+  }
+
   if (listener_.matched_ <= 0)
   {
     KT_W("listener not matched");
@@ -185,9 +188,9 @@ bool NgsildPublisher::publish(KjNode* entityP)
   eprosima::fastrtps::Duration_t    duration(0, 10000000);  // 0.01 seconds
   ReturnCode_t  r = writer_->wait_for_acknowledgments(duration);
 
-  if (r == 0)
+  if (r == ReturnCode_t::RETCODE_OK)
     KT_V("writer has successfully published an entity");
-  else if  (r == 10)
+  else if  (r == ReturnCode_t::RETCODE_TIMEOUT)
     KT_W("wait_for_acknowledgments timed out (10 milliseconds)");
   else
     KT_E("wait_for_acknowledgments failed with error %d", r);

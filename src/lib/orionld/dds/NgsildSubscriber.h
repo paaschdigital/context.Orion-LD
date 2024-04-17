@@ -199,14 +199,10 @@ class NgsildSubscriber
 #ifdef DDS_RELIABLE
     DataReaderQos  rqos = DATAREADER_QOS_DEFAULT;
 
-    rqos.reliability().kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
-    rqos.durability().kind  = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
-    rqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
-    rqos.history().depth    = 5;
-    KT_V("reliability kind: %d", eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS);
-    KT_V("durability kind:  %d", eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS);
-    KT_V("history kind:     %d", eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS);
-    KT_V("history depth:    %d", 5);
+    rqos.reliability().kind = eprosima::fastdds::dds::BEST_EFFORT_RELIABILITY_QOS;
+    rqos.durability().kind  = eprosima::fastdds::dds::VOLATILE_DURABILITY_QOS;
+//    rqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+//    rqos.history().depth    = 5;
     reader_                 = subscriber_->create_datareader(topic_, rqos, &listener_);
 #else
     reader_ = subscriber_->create_datareader(topic_, DATAREADER_QOS_DEFAULT, &listener_);
