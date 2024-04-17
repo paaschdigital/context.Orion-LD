@@ -52,8 +52,6 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
-#include "orionld/dds/NgsildEntityPubSubTypes.h"
-
 extern "C"
 {
 #include "ktrace/kTrace.h"                                  // trace messages - ktrace library
@@ -61,10 +59,20 @@ extern "C"
 }
 
 #include "orionld/common/traceLevels.h"                     // Trace Levels
+#include "orionld/dds/NgsildEntityPubSubTypes.h"            // DDS stuff ...
+#include "orionld/dds/config.h"                             // DDS_RELIABLE, ...
 
 using namespace eprosima::fastdds::dds;
 
+
+
+// -----------------------------------------------------------------------------
+//
+//  ddsDumpArray - accumulating data from DDS notifications
+//
 KjNode* ddsDumpArray = NULL;
+
+
 
 // -----------------------------------------------------------------------------
 //
@@ -175,7 +183,10 @@ class NgsildSubscriber
     topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
 
     if (topic_ == nullptr)
+    {
+      KT_V("Error creating topic (type: '%s') '%s'", topicType, topicName);
       return false;
+    }
 
     // Create the Subscriber
     subscriber_ = participant_->create_subscriber(SUBSCRIBER_QOS_DEFAULT, nullptr);
@@ -183,15 +194,38 @@ class NgsildSubscriber
       return false;
 
     // Create the DataReader
+    KT_V("Creating reader");
+#ifdef DDS_RELIABLE
+    DataReaderQos  rqos = DATAREADER_QOS_DEFAULT;
+
+    rqos.reliability().kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+    rqos.durability().kind  = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
+    rqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+    rqos.history().depth    = 5;
+    KT_V("reliability kind: %d", eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS);
+    KT_V("durability kind:  %d", eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS);
+    KT_V("history kind:     %d", eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS);
+    KT_V("history depth:    %d", 5);
+    reader_                 = subscriber_->create_datareader(topic_, rqos, &listener_);
+#else
     reader_ = subscriber_->create_datareader(topic_, DATAREADER_QOS_DEFAULT, &listener_);
+#endif
+
     if (reader_ == nullptr)
+    {
+      KT_E("Error creating DataReader");
       return false;
+    }
+
+    KT_V("Created reader");
+    KT_V("Init done");
 
     return true;
   }
 
   void run(uint32_t samples)
   {
+    KT_V("Awaiting notifications");
     while ((uint32_t) listener_.samples_ < samples)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));

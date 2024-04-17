@@ -64,12 +64,12 @@ extern "C"
 using namespace eprosima::fastdds::dds;
 
 
-
+// NgsildPublisher::_on_
 // -----------------------------------------------------------------------------
 //
 // NgsildPublisher -
 //
-class NgsildPublisher
+class NgsildPublisher // : DataWriterListener
 {
  private:
   NgsildEntity        entity_;
@@ -82,7 +82,9 @@ class NgsildPublisher
   class PubListener : public DataWriterListener
   {
   public:
-    PubListener() : matched_(0)
+    bool ready_;
+
+  PubListener() : ready_(false), matched_(0)
     {
     }
 
@@ -93,18 +95,22 @@ class NgsildPublisher
     void on_publication_matched
     (
       DataWriter*,
-      const PublicationMatchedStatus& info) override
+      const PublicationMatchedStatus& info
+    ) override
     {
+      // FIXME: Don't Publish until entering here!  (mutex)
       KT_V("info.current_count_change: %d", info.current_count_change);
       if (info.current_count_change == 1)
       {
         matched_ = info.total_count;
         KT_T(StDds, "Publisher matched.");
+        ready_ = true;
       }
       else if (info.current_count_change == -1)
       {
         matched_ = info.total_count;
         KT_T(StDds, "Publisher unmatched.");
+        ready_ = false;
       }
       else
         KT_T(StDds, "'%d' is not a valid value for PublicationMatchedStatus current count change.", info.total_count);
@@ -119,7 +125,7 @@ class NgsildPublisher
     , publisher_(nullptr)
     , topic_(nullptr)
     , writer_(nullptr)
-    , type_(new NgsildEntityPubSubType())
+    , type_(new NgsildEntityPubSubType())  // FIXME: topicType needs to be input to this constructor
   {
   }
 

@@ -36,44 +36,56 @@ extern "C"
 
 // -----------------------------------------------------------------------------
 //
+// SubscriberParams -
+//
+typedef struct SubscriberParams
+{
+  char* topicType;
+  char* topicName;
+} SubscriberParams;
+
+
+
+// -----------------------------------------------------------------------------
+//
 // ddsSubscribe -
 //
 // EPROS: We would like to have one single subscriber, that subscribes to all DDS notifications
 //        Obviously, we'd need a way to add topic to that subscriber "on the fly"
 //
-typedef struct X
-{
-  char* topicType;
-  char* topicName;
-} X;
-
 static void* ddsSubscribe2(void* vP)
 {
-  X* xP = (X*) vP;
+  SubscriberParams* spP = (SubscriberParams*) vP;
 
-  KT_V("Creating a subscription on '%s/%s'", xP->topicType, xP->topicName);
+  KT_V("Creating a subscription on '%s/%s'", spP->topicType, spP->topicName);
 
   NgsildSubscriber* subP = new NgsildSubscriber();
 
-  if (subP->init(xP->topicType, xP->topicName))
+  if (subP->init(spP->topicType, spP->topicName))
   {
     subP->run(1400000);  // EPROS: one single subscriber ... run forever ...
   }
 
-  KT_V("Deleting the subscription on '%s/%s'", xP->topicType, xP->topicName);
+  KT_V("Deleting the subscription on '%s/%s'", spP->topicType, spP->topicName);
   delete subP;
 
   return NULL;
 }
 
+
+
+// -----------------------------------------------------------------------------
+//
+// ddsSubscribe -
+//
 void ddsSubscribe(const char* topicType, const char* topicName)
 {
-  pthread_t  tid;
-  X*         xP = (X*) malloc(sizeof(X));
+  pthread_t          tid;
+  SubscriberParams*  spP = (SubscriberParams*) malloc(sizeof(SubscriberParams));
 
-  xP->topicType = strdup(topicType);
-  xP->topicName = strdup(topicName);
+  spP->topicType = strdup(topicType);
+  spP->topicName = strdup(topicName);
 
-  KT_V("Starting thread for DDS subscription on %s/%s", xP->topicType, xP->topicName);
-  pthread_create(&tid, NULL, ddsSubscribe2, xP);
+  KT_V("Starting thread for DDS subscription on %s/%s", spP->topicType, spP->topicName);
+  pthread_create(&tid, NULL, ddsSubscribe2, spP);
 }

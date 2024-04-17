@@ -31,7 +31,14 @@ extern "C"
 #include "orionld/dds/NgsildEntityPubSubTypes.h"
 #include "orionld/dds/NgsildEntity.h"
 #include "orionld/dds/NgsildPublisher.h"
+#include "orionld/dds/config.h"                             // DDS_RELIABLE, ...
 
+
+
+// -----------------------------------------------------------------------------
+//
+// namespacea ... (to be removed!)
+//
 using namespace eprosima::fastdds::dds;
 
 
@@ -42,18 +49,31 @@ using namespace eprosima::fastdds::dds;
 //
 void ddsPublish(const char* topicType, const char* topicName, KjNode* entityP)
 {
-  NgsildPublisher* mypub = new NgsildPublisher();
+  NgsildPublisher* publisherP = new NgsildPublisher();  // FIXME: topicType needs to be input to this constructor
 
-  KT_V("Initializing publisher for topicName '%s', topicType '%s'", topicName, topicType);
-  if (mypub->init(topicType, topicName))
+  KT_V("Initializing publisher for topicType '%s', topicName '%s'", topicType, topicName);
+  if (publisherP->init(topicType, topicName))
   {
+    //
+    // FIXME: we can't do new+publish+delete for each and every publication!
+    // There might easily be 10,000 publications per second.
+    //
+
+#ifndef DDS_RELIABLE
     usleep(10000);
-    KT_V("Publishing on topicName '%s', topicType '%s'", topicName, topicType);
-    if (mypub->publish(entityP))
-      KT_V("Published on topicName '%s', topicType '%s'", topicName, topicType);
+#endif
+
+    KT_V("Publishing on topicType '%s', topicName '%s'", topicType, topicName);
+    if (publisherP->publish(entityP))
+      KT_V("Published on topicType '%s', topicName '%s'", topicType, topicName);
     else
-      KT_V("Error publishing on topicName '%s', topicType '%s'", topicName, topicType);
+      KT_V("Error publishing on topicType '%s', topicName '%s'", topicType, topicName);
+
+#ifndef DDS_RELIABLE
+    usleep(10000);
+#endif
   }
+
   KT_V("Deleting publisher");
-  delete mypub;
+  delete publisherP;
 }

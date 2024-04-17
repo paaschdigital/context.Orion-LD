@@ -46,6 +46,7 @@ extern "C"
 
 #include "orionld/common/traceLevels.h"                     // Trace Levels
 #include "orionld/dds/NgsildPublisher.h"                    // NgsildPublisher
+#include "orionld/dds/config.h"                             // DDS_RELIABLE, ...
 
 
 
@@ -78,7 +79,8 @@ NgsildPublisher::~NgsildPublisher()
 //
 bool NgsildPublisher::init(const char* topicType, const char* topicName)
 {
-  DomainParticipantQos participantQos;
+  DomainParticipantQos  participantQos;
+
   participantQos.name("Participant_publisher");
   participant_ = DomainParticipantFactory::get_instance()->create_participant(0, participantQos);
 
@@ -92,15 +94,15 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   type_.register_type(participant_);
 
   // Create the publications Topic
-  KT_V("creating topic: '%s' with type '%s'", topicName, topicType);
+  KT_V("creating topic (type: '%s') '%s'", topicType, topicName);
   topic_ = participant_->create_topic(topicName, topicType, TOPIC_QOS_DEFAULT);
 
   if (topic_ == nullptr)
   {
-    KT_E("Create topic failed");
+    KT_E("Create topic %s/%s failed", topicType, topicName);
     return false;
   }
-  KT_V("created topic: '%s' with type '%s'!", topicName, topicType);
+  KT_V("created topic (type: '%s') '%s'", topicType, topicName);
 
   // Create the Publisher
   publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
@@ -113,17 +115,32 @@ bool NgsildPublisher::init(const char* topicType, const char* topicName)
   }
 
   // Create the DataWriter
-  KT_V("creating writer");
-  writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
+  KT_V("Creating writer");
+#ifdef DDS_RELIABLE
+  DataWriterQos  wqos = DATAWRITER_QOS_DEFAULT;
+
+  wqos.reliability().kind = eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS;
+  wqos.durability().kind  = eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS;
+  wqos.history().kind     = eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS;
+  wqos.history().depth    = 5;
+  KT_V("reliability kind: %d", eprosima::fastdds::dds::RELIABLE_RELIABILITY_QOS);
+  KT_V("durability kind:  %d", eprosima::fastdds::dds::TRANSIENT_LOCAL_DURABILITY_QOS);
+  KT_V("history kind:     %d", eprosima::fastdds::dds::KEEP_LAST_HISTORY_QOS);
+  KT_V("history depth:    %d", 5);
+  writer_                 = publisher_->create_datawriter(topic_, wqos, &listener_);
+#else
+  writer_                 = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
+#endif
 
   if (writer_ == nullptr)
   {
-    KT_E("Create DataWriter failed");
+    KT_E("Error creating DataWriter");
     return false;
   }
-  KT_V("created writer");
 
+  KT_V("Created writer");
   KT_V("Init done");
+
   return true;
 }
 
@@ -140,15 +157,16 @@ bool NgsildPublisher::publish(KjNode* entityP)
     KT_W("listener not matched");
     return false;
   }
+
   if (entityP == NULL)
     KT_X(1, "entityP == NULL");
 
   KjNode*     idNodeP   = kjLookup(entityP, "id");
   KjNode*     typeNodeP = kjLookup(entityP, "type");
-  const char* id        = (idNodeP != NULL)? idNodeP->value.s : "idNodeP is NULL";
+  const char* id        = (idNodeP   != NULL)? idNodeP->value.s   : "idNodeP is NULL";
   const char* type      = (typeNodeP != NULL)? typeNodeP->value.s : "typeNodeP is NULL";
 
-  KT_V("id: '%s'", id);
+  KT_V("id:   '%s'", id);
   KT_V("type: '%s'", type);
 
   entity_.id(id);
@@ -157,9 +175,24 @@ bool NgsildPublisher::publish(KjNode* entityP)
   bool b = writer_->write(&entity_);
 
   if (b == false)
+  {
     KT_E("Not able to publish");
+    return false;
+  }
+
+#ifdef DDS_RELIABLE
+  eprosima::fastrtps::Duration_t    duration(0, 10000000);  // 0.01 seconds
+  ReturnCode_t  r = writer_->wait_for_acknowledgments(duration);
+
+  if (r == 0)
+    KT_V("writer has successfully published an entity");
+  else if  (r == 10)
+    KT_W("wait_for_acknowledgments timed out (10 milliseconds)");
   else
-    KT_V("Published");
+    KT_E("wait_for_acknowledgments failed with error %d", r);
+#else
+  KT_V("writer seems to have published an entity");
+#endif
 
   return true;
 }
