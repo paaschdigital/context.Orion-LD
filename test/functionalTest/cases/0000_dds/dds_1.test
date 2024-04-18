@@ -50,8 +50,6 @@ echo
 echo
 
 
-sleep .1
-
 echo "02. Ask FT2 to publish an entity on topic 'x'"
 echo "============================================="
 payload='{
@@ -62,7 +60,6 @@ orionCurl --url '/dds/pub?ddsTopicType=someTopic&ddsTopicName=x' --port $FT2_POR
 echo
 echo
 
-sleep .5
 
 echo "03. Ask FT1 what it has received"
 echo "================================"

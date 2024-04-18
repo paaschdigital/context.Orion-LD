@@ -20,9 +20,14 @@
 
 SET (SOURCES
     ftClient.cpp
+    ftErrorResponse.cpp
     getDump.cpp
     deleteDump.cpp
     die.cpp
+    deleteDdsDump.cpp
+    getDdsDump.cpp
+    postDdsSub.cpp
+    postDdsPub.cpp
 )
 
 SET (COMMON_STATIC_LIBS

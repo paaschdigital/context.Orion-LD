@@ -55,13 +55,20 @@ extern "C"
 #include "dds/ddsPublish.h"                                 // ddsPublish
 #include "dds/ddsSubscribe.h"                               // ddsSubscribe
 
+#include "ftClient/ftErrorResponse.h"                       // ftErrorResponse
+
+// Service Routines
 #include "ftClient/getDump.h"                               // getDump
 #include "ftClient/deleteDump.h"                            // deleteDump
 #include "ftClient/die.h"                                   // die
+#include "ftClient/deleteDdsDump.h"                         // deleteDdsDump
+#include "ftClient/getDdsDump.h"                            // getDdsDump
+#include "ftClient/postDdsPub.h"                            // postDdsPub
+#include "ftClient/postDdsSub.h"                            // postDdsSub
 
 
 
-using namespace eprosima::fastdds::dds;
+using namespace eprosima::fastdds::dds;  // FIXME: remove this - use "absolute paths"
 
 
 
@@ -170,111 +177,10 @@ __thread Kjson*         kjsonP;
 //
 // Other global variables
 //
-KjNode*                 dumpArray = NULL;
-__thread KjNode*        httpHeaders = NULL;
-__thread KjNode*        uriParams   = NULL;
-
-
-
-// -----------------------------------------------------------------------------
-//
-// ftErrorResponse -
-//
-KjNode* ftErrorResponse(int code, const char* title, const char* detail)
-{
-  KjNode* errorP  = kjObject(NULL, NULL);
-  KjNode* codeP   = kjInteger(NULL, "statusCode", code);
-  KjNode* titleP  = kjString(NULL,  "title",      title);
-  KjNode* detailP = kjString(NULL,  "detail",     detail);
-
-  kjChildAdd(errorP, codeP);
-  kjChildAdd(errorP, titleP);
-  kjChildAdd(errorP, detailP);
-
-  return errorP;
-}
-
-
-
-// -----------------------------------------------------------------------------
-//
-// postDdsSub -
-//
-KjNode* postDdsSub(int* statusCodeP)
-{
-  KjNode*      ddsTopicTypeNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
-  const char*  ddsTopicType       = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
-  KjNode*      ddsTopicNameNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
-  const char*  ddsTopicName       = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
-
-  if (ddsTopicName == NULL || ddsTopicType == NULL)
-  {
-    KT_E("Both Name and Type of the topic should not be null");
-    *statusCodeP = 400;
-    return ftErrorResponse(400, "URI Param missing", "Both Name and Type of the topic must be present");
-  }
-
-  KT_V("Creating DDS Subcription for the topic %s:%s", ddsTopicType, ddsTopicName);
-  ddsSubscribe(ddsTopicType, ddsTopicName);
-
-  *statusCodeP = 201;
-  return NULL;
-}
-
-
-
-// -----------------------------------------------------------------------------
-//
-// postDdsPub -
-//
-KjNode* postDdsPub(int* statusCodeP)
-{
-  KjNode*      ddsTopicTypeNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicType") : NULL;
-  const char*  ddsTopicType       = (ddsTopicTypeNodeP != NULL)? ddsTopicTypeNodeP->value.s : NULL;
-  KjNode*      ddsTopicNameNodeP  = (uriParams         != NULL)? kjLookup(uriParams, "ddsTopicName") : NULL;
-  const char*  ddsTopicName       = (ddsTopicNameNodeP != NULL)? ddsTopicNameNodeP->value.s : NULL;
-
-  if (ddsTopicName == NULL || ddsTopicType == NULL)
-  {
-    KT_E("Both Name and Type of the topic should not be null");
-    *statusCodeP = 400;
-    return ftErrorResponse(400, "URI Param missing", "Both Name and Type of the topic must be present");
-  }
-
-  KT_V("Publishing on DDS for the topic %s:%s", ddsTopicType, ddsTopicName);
-  ddsPublish(ddsTopicType, ddsTopicName, payloadTree);
-
-  *statusCodeP = 204;
-  return NULL;
-}
-
-
-
-extern KjNode* ddsDumpArray;
-// -----------------------------------------------------------------------------
-//
-// getDdsDump -
-//
-KjNode* getDdsDump(int* statusCodeP)
-{
-  *statusCodeP = 200;
-  return ddsDumpArray;
-}
-
-
-
-// -----------------------------------------------------------------------------
-//
-// deleteDdsDump -
-//
-KjNode* deleteDdsDump(int* statusCodeP)
-{
-  kjFree(ddsDumpArray);
-  ddsDumpArray = kjArray(NULL, NULL);
-
-  *statusCodeP = 200;
-  return NULL;
-}
+KjNode*                 dumpArray    = NULL;
+KjNode*                 ddsDumpArray = NULL;
+__thread KjNode*        httpHeaders  = NULL;
+__thread KjNode*        uriParams    = NULL;
 
 
 
@@ -629,7 +535,9 @@ int main(int argC, char* argV[])
   // NOTE: not only notifications, also forwarded requests, or just about anything received out of the defined API it supports for
   //       configuration.
   //
-  dumpArray = kjArray(NULL, "dumpArray");
+  dumpArray = kjArray(NULL, "dumpArray");  // Dump Array for REST requests
+  ddsDumpArray = NULL;
+
 
   KT_V("Serving requests on port %d", ldPort);
   KT_D("%s version:                   %s", progName, FTCLIENT_VERSION);

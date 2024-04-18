@@ -70,7 +70,7 @@ using namespace eprosima::fastdds::dds;
 //
 //  ddsDumpArray - accumulating data from DDS notifications
 //
-KjNode* ddsDumpArray = NULL;
+extern KjNode* ddsDumpArray;
 
 
 
